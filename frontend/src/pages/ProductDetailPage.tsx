@@ -88,7 +88,7 @@ const ProductDetailPage = () => {
           {/* Precio */}
           <div className="border-t border-b py-4">
             <span className="text-4xl font-bold text-orange-600">
-              €{product.price}
+              {product.price} €
             </span>
           </div>
 
@@ -127,7 +127,7 @@ const ProductDetailPage = () => {
                 disabled={product.stock_quantity === 0}
                 className="w-full bg-orange-500 hover:bg-orange-600 disabled:bg-gray-300 text-white font-medium py-3 px-6 rounded-lg transition-colors disabled:cursor-not-allowed"
               >
-                {product.stock_quantity === 0 ? 'Sin Stock' : `Agregar al Carrito - €${(Number(product.price) * quantity).toFixed(2)}`}
+                {product.stock_quantity === 0 ? 'Sin Stock' : `Agregar al Carrito - ${((Number(product.price) * quantity).toFixed(2))} €`}
               </button>
               
               <Link 

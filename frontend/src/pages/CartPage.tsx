@@ -78,7 +78,7 @@ const CartPage = () => {
                   <h3 className="font-semibold text-lg">{item.product.name}</h3>
                   <p className="text-gray-600">{item.product.description}</p>
                   <p className="text-orange-600 font-semibold">
-                    €{item.product.price}
+                    {item.product.price} €
                   </p>
                 </div>
 
@@ -118,7 +118,7 @@ const CartPage = () => {
           <div className="space-y-2 mb-4">
             <div className="flex justify-between">
               <span>Subtotal:</span>
-              <span>€{Number(total).toFixed(2)}</span>
+              <span>{Number(total).toFixed(2)} €</span>
             </div>
             <div className="flex justify-between">
               <span>Envío:</span>
@@ -126,7 +126,7 @@ const CartPage = () => {
             </div>
             <div className="border-t pt-2 flex justify-between font-semibold text-lg">
               <span>Total:</span>
-              <span>€{Number(total).toFixed(2)}</span>
+              <span>{Number(total).toFixed(2)} €</span>
             </div>
           </div>
 

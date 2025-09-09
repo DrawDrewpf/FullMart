@@ -122,8 +122,8 @@ const ProductsPage = () => {
               <p className="text-sm text-gray-500">{product.category}</p>
               
               <div className="flex justify-between items-center pt-4">
-                <span className="text-xl font-bold text-orange-600">
-                  €{product.price}
+                <span className="text-lg font-bold text-orange-600">
+                  {product.price}€
                 </span>
                 <button 
                   className="bg-orange-500 hover:bg-orange-600 text-white font-medium py-2 px-4 rounded-md transition-colors"

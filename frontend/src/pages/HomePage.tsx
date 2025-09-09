@@ -56,7 +56,7 @@ const HomePage = () => {
         <div className="text-center p-6">
           <div className="text-4xl mb-4">🚚</div>
           <h3 className="text-xl font-semibold mb-2">Envío Gratis</h3>
-          <p className="text-gray-600">Envío gratuito en pedidos superiores a 50€</p>
+          <p className="text-gray-600">Envío gratuito en pedidos superiores a 50 €</p>
         </div>
         
         <div className="text-center p-6">
@@ -103,7 +103,7 @@ const HomePage = () => {
                 
                 <div className="flex justify-between items-center pt-2">
                   <span className="text-xl font-bold text-orange-600">
-                    €{product.price}
+                    {product.price} €
                   </span>
                   <button 
                     className="bg-orange-500 hover:bg-orange-600 text-white font-medium py-2 px-3 rounded-md transition-colors text-sm"
