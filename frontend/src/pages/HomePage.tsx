@@ -1,6 +1,14 @@
 import { Link } from 'react-router-dom';
+import { useDispatch } from 'react-redux';
+import { addToCart } from '../store/slices/cartSlice';
+import { mockProducts } from '../data/mockProducts';
+import ProductImage from '../components/common/ProductImage';
 
 const HomePage = () => {
+  const dispatch = useDispatch();
+  
+  // Seleccionar los primeros 4 productos como destacados
+  const featuredProducts = mockProducts.slice(0, 4);
   return (
     <div className="space-y-12">
       {/* Hero Section */}
@@ -24,7 +32,7 @@ const HomePage = () => {
         <div className="text-center p-6">
           <div className="text-4xl mb-4">🚚</div>
           <h3 className="text-xl font-semibold mb-2">Envío Gratis</h3>
-          <p className="text-gray-600">Envío gratuito en pedidos superiores a $50</p>
+          <p className="text-gray-600">Envío gratuito en pedidos superiores a €50</p>
         </div>
         
         <div className="text-center p-6">
@@ -43,18 +51,57 @@ const HomePage = () => {
       {/* Featured Products Preview */}
       <section>
         <h2 className="text-3xl font-bold text-center mb-8">Productos Destacados</h2>
-        <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-6">
-          {/* Placeholder for featured products */}
-          {[1, 2, 3, 4].map((item) => (
-            <div key={item} className="bg-white rounded-lg shadow-md p-6 hover:shadow-lg transition-shadow">
-              <div className="h-48 bg-gray-200 rounded-md mb-4 flex items-center justify-center">
-                <span className="text-gray-500">Imagen del producto</span>
-              </div>
-              <h3 className="font-semibold mb-2">Producto {item}</h3>
-              <p className="text-gray-600 mb-4">Descripción del producto...</p>
-              <div className="flex justify-between items-center">
-                <span className="text-xl font-bold text-orange-600">$99.99</span>
-                <button className="bg-orange-500 hover:bg-orange-600 text-white font-medium py-2 px-4 rounded-md transition-colors">Agregar</button>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+          {featuredProducts.map((product) => (
+            <div key={product.id} className="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow">
+              {/* Imagen del producto - clickeable para ir al detalle */}
+              <Link to={`/product/${product.id}`} className="block">
+                <div className="h-48 bg-gray-200 flex items-center justify-center hover:bg-gray-300 transition-colors overflow-hidden">
+                  <ProductImage 
+                    src={product.imageUrl} 
+                    alt={product.name}
+                    className="w-full h-full object-cover hover:scale-105 transition-transform duration-300"
+                    fallbackText="Imagen no disponible"
+                    category={product.category}
+                  />
+                </div>
+              </Link>
+              
+              <div className="p-4 space-y-2">
+                {/* Nombre del producto - clickeable para ir al detalle */}
+                <Link to={`/product/${product.id}`}>
+                  <h3 className="font-semibold text-lg hover:text-orange-600 transition-colors cursor-pointer line-clamp-1">
+                    {product.name}
+                  </h3>
+                </Link>
+                
+                <p className="text-gray-600 text-sm line-clamp-2">{product.description}</p>
+                
+                {/* Rating si está disponible */}
+                {product.rating && (
+                  <div className="flex items-center text-sm text-gray-500">
+                    <span className="text-yellow-400">★</span>
+                    <span className="ml-1">{product.rating}</span>
+                  </div>
+                )}
+                
+                <div className="flex justify-between items-center pt-2">
+                  <span className="text-xl font-bold text-orange-600">
+                    €{product.price.toFixed(2)}
+                  </span>
+                  <button 
+                    className="bg-orange-500 hover:bg-orange-600 text-white font-medium py-2 px-3 rounded-md transition-colors text-sm"
+                    onClick={() => {
+                      dispatch(addToCart({
+                        product: product,
+                        quantity: 1
+                      }));
+                      alert(`${product.name} agregado al carrito`);
+                    }}
+                  >
+                    Agregar
+                  </button>
+                </div>
               </div>
             </div>
           ))}

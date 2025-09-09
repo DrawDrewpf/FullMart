@@ -1,22 +1,14 @@
 import { useState } from 'react';
+import { Link } from 'react-router-dom';
+import { useDispatch } from 'react-redux';
+import { addToCart } from '../store/slices/cartSlice';
+import { mockProducts, categories } from '../data/mockProducts';
+import ProductImage from '../components/common/ProductImage';
 
 const ProductsPage = () => {
   const [selectedCategory, setSelectedCategory] = useState('');
   const [searchTerm, setSearchTerm] = useState('');
-
-  // Mock data - será reemplazado por datos reales del backend
-  const mockProducts = Array.from({ length: 12 }, (_, i) => ({
-    id: i + 1,
-    name: `Producto ${i + 1}`,
-    description: `Descripción del producto ${i + 1}`,
-    price: (i + 1) * 25.99,
-    category: i % 3 === 0 ? 'Electronics' : i % 3 === 1 ? 'Clothing' : 'Home',
-    stock: 10,
-    imageUrl: '',
-    createdAt: new Date().toISOString(),
-  }));
-
-  const categories = ['Electronics', 'Clothing', 'Home', 'Books', 'Sports'];
+  const dispatch = useDispatch();
 
   const filteredProducts = mockProducts.filter(product => {
     const matchesCategory = !selectedCategory || product.category === selectedCategory;
@@ -66,8 +58,8 @@ const ProductsPage = () => {
             >
               <option value="">Todas las categorías</option>
               {categories.map(category => (
-                <option key={category} value={category}>
-                  {category}
+                <option key={category.id} value={category.name}>
+                  {category.name} ({category.count})
                 </option>
               ))}
             </select>
@@ -78,25 +70,55 @@ const ProductsPage = () => {
       {/* Products Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
         {filteredProducts.map((product) => (
-          <div key={product.id} className="bg-white rounded-lg shadow-md p-6 hover:shadow-lg transition-shadow">
-            <div className="h-48 bg-gray-200 rounded-md mb-4 flex items-center justify-center">
-              <span className="text-gray-500">Imagen</span>
-            </div>
+          <div key={product.id} className="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow">
+            {/* Imagen del producto - clickeable para ir al detalle */}
+            <Link to={`/product/${product.id}`} className="block">
+              <div className="h-48 bg-gray-200 flex items-center justify-center hover:bg-gray-300 transition-colors overflow-hidden">
+                <ProductImage 
+                  src={product.imageUrl} 
+                  alt={product.name}
+                  className="w-full h-full object-cover hover:scale-105 transition-transform duration-300"
+                  fallbackText="Imagen no disponible"
+                  category={product.category}
+                />
+              </div>
+            </Link>
             
-            <div className="space-y-2">
-              <h3 className="font-semibold text-lg">{product.name}</h3>
-              <p className="text-gray-600 text-sm">{product.description}</p>
+            <div className="p-6 space-y-2">
+              {/* Nombre del producto - clickeable para ir al detalle */}
+              <Link to={`/product/${product.id}`}>
+                <h3 className="font-semibold text-lg hover:text-orange-600 transition-colors cursor-pointer">
+                  {product.name}
+                </h3>
+              </Link>
+              
+              <p className="text-gray-600 text-sm line-clamp-2">{product.description}</p>
               <p className="text-sm text-gray-500">{product.category}</p>
+              
+              {/* Rating si está disponible */}
+              {product.rating && (
+                <div className="flex items-center text-sm text-gray-500">
+                  <span className="text-yellow-400">★</span>
+                  <span className="ml-1">{product.rating}</span>
+                  {product.reviews && (
+                    <span className="ml-1">({product.reviews} reseñas)</span>
+                  )}
+                </div>
+              )}
               
               <div className="flex justify-between items-center pt-4">
                 <span className="text-xl font-bold text-orange-600">
-                  ${product.price.toFixed(2)}
+                  €{product.price.toFixed(2)}
                 </span>
                 <button 
                   className="bg-orange-500 hover:bg-orange-600 text-white font-medium py-2 px-4 rounded-md transition-colors"
                   onClick={() => {
-                    // TODO: Implement add to cart
-                    alert(`Agregado ${product.name} al carrito`);
+                    dispatch(addToCart({
+                      product: product,
+                      quantity: 1
+                    }));
+                    // Mostrar feedback visual
+                    alert(`${product.name} agregado al carrito`);
                   }}
                 >
                   Agregar al Carrito

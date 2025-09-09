@@ -163,7 +163,7 @@ const CheckoutPage = () => {
               type="submit"
               className="w-full bg-orange-500 hover:bg-orange-600 text-white font-medium py-3 px-4 rounded-md transition-colors text-lg"
             >
-              Realizar Pedido - ${total.toFixed(2)}
+              Realizar Pedido - €{total.toFixed(2)}
             </button>
           </form>
         </div>
@@ -180,7 +180,7 @@ const CheckoutPage = () => {
                   <p className="text-sm text-gray-500">Cantidad: {item.quantity}</p>
                 </div>
                 <span className="font-semibold">
-                  ${(item.price * item.quantity).toFixed(2)}
+                  €{(item.price * item.quantity).toFixed(2)}
                 </span>
               </div>
             ))}
@@ -189,7 +189,7 @@ const CheckoutPage = () => {
           <div className="border-t pt-4 space-y-2">
             <div className="flex justify-between">
               <span>Subtotal:</span>
-              <span>${total.toFixed(2)}</span>
+              <span>€{total.toFixed(2)}</span>
             </div>
             <div className="flex justify-between">
               <span>Envío:</span>
@@ -197,11 +197,11 @@ const CheckoutPage = () => {
             </div>
             <div className="flex justify-between">
               <span>Impuestos:</span>
-              <span>${(total * 0.1).toFixed(2)}</span>
+              <span>€{(total * 0.1).toFixed(2)}</span>
             </div>
             <div className="border-t pt-2 flex justify-between font-semibold text-lg">
               <span>Total:</span>
-              <span>${(total * 1.1).toFixed(2)}</span>
+              <span>€{(total * 1.1).toFixed(2)}</span>
             </div>
           </div>
         </div>

@@ -17,6 +17,9 @@ export interface Product {
   imageUrl?: string;
   category: string;
   stock: number;
+  rating?: number;
+  reviews?: number;
+  features?: string[];
   createdAt: string;
 }
 

@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { updateQuantity, removeFromCart } from '../store/slices/cartSlice';
 import { useAppSelector } from '../hooks/redux';
 import type { CartItem } from '../types';
+import ProductImage from '../components/common/ProductImage';
 
 const CartPage = () => {
   const dispatch = useDispatch();
@@ -52,8 +53,15 @@ const CartPage = () => {
             <div key={item.id} className="bg-white rounded-lg shadow-md p-6">
               <div className="flex items-center space-x-4">
                 {/* Product Image */}
-                <div className="w-20 h-20 bg-gray-200 rounded-md flex items-center justify-center flex-shrink-0">
-                  <span className="text-gray-500 text-xs">IMG</span>
+                <div className="w-20 h-20 bg-gray-200 rounded-md flex items-center justify-center flex-shrink-0 overflow-hidden">
+                  <ProductImage 
+                    src={item.product.imageUrl} 
+                    alt={item.product.name}
+                    className="w-full h-full object-cover"
+                    fallbackText="Sin imagen"
+                    category={item.product.category}
+                    size="small"
+                  />
                 </div>
 
                 {/* Product Info */}
@@ -61,7 +69,7 @@ const CartPage = () => {
                   <h3 className="font-semibold text-lg">{item.product.name}</h3>
                   <p className="text-gray-600">{item.product.description}</p>
                   <p className="text-orange-600 font-semibold">
-                    ${item.price.toFixed(2)}
+                    €{item.price.toFixed(2)}
                   </p>
                 </div>
 
@@ -101,7 +109,7 @@ const CartPage = () => {
           <div className="space-y-2 mb-4">
             <div className="flex justify-between">
               <span>Subtotal:</span>
-              <span>${total.toFixed(2)}</span>
+              <span>€{total.toFixed(2)}</span>
             </div>
             <div className="flex justify-between">
               <span>Envío:</span>
@@ -109,7 +117,7 @@ const CartPage = () => {
             </div>
             <div className="border-t pt-2 flex justify-between font-semibold text-lg">
               <span>Total:</span>
-              <span>${total.toFixed(2)}</span>
+              <span>€{total.toFixed(2)}</span>
             </div>
           </div>
 
