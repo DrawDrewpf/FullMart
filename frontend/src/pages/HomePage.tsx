@@ -1,14 +1,38 @@
 import { Link } from 'react-router-dom';
 import { useDispatch } from 'react-redux';
-import { addToCart } from '../store/slices/cartSlice';
-import { mockProducts } from '../data/mockProducts';
+import { useEffect } from 'react';
+import { addToCartAsync } from '../store/slices/cartSlice';
+import { fetchProducts } from '../store/slices/productsSlice';
+import { useAppSelector } from '../hooks/redux';
+import type { AppDispatch } from '../store/store';
+import type { Product } from '../types';
 import ProductImage from '../components/common/ProductImage';
 
 const HomePage = () => {
-  const dispatch = useDispatch();
+  const dispatch = useDispatch<AppDispatch>();
+  const { products } = useAppSelector((state) => state.products);
+  const { isAuthenticated } = useAppSelector((state) => state.auth);
   
+  useEffect(() => {
+    // Cargar productos al montar el componente
+    dispatch(fetchProducts({ limit: 4 }));
+  }, [dispatch]);
+
+  const handleAddToCart = (product: Product) => {
+    if (!isAuthenticated) {
+      alert('Debes iniciar sesión para agregar productos al carrito');
+      return;
+    }
+    
+    dispatch(addToCartAsync({
+      productId: product.id,
+      quantity: 1
+    }));
+    alert(`${product.name} agregado al carrito`);
+  };
+
   // Seleccionar los primeros 4 productos como destacados
-  const featuredProducts = mockProducts.slice(0, 4);
+  const featuredProducts = products.slice(0, 4);
   return (
     <div className="space-y-12">
       {/* Hero Section */}
@@ -32,7 +56,7 @@ const HomePage = () => {
         <div className="text-center p-6">
           <div className="text-4xl mb-4">🚚</div>
           <h3 className="text-xl font-semibold mb-2">Envío Gratis</h3>
-          <p className="text-gray-600">Envío gratuito en pedidos superiores a €50</p>
+          <p className="text-gray-600">Envío gratuito en pedidos superiores a 50€</p>
         </div>
         
         <div className="text-center p-6">
@@ -58,7 +82,7 @@ const HomePage = () => {
               <Link to={`/product/${product.id}`} className="block">
                 <div className="h-48 bg-gray-200 flex items-center justify-center hover:bg-gray-300 transition-colors overflow-hidden">
                   <ProductImage 
-                    src={product.imageUrl} 
+                    src={product.image_url} 
                     alt={product.name}
                     className="w-full h-full object-cover hover:scale-105 transition-transform duration-300"
                     fallbackText="Imagen no disponible"
@@ -77,27 +101,13 @@ const HomePage = () => {
                 
                 <p className="text-gray-600 text-sm line-clamp-2">{product.description}</p>
                 
-                {/* Rating si está disponible */}
-                {product.rating && (
-                  <div className="flex items-center text-sm text-gray-500">
-                    <span className="text-yellow-400">★</span>
-                    <span className="ml-1">{product.rating}</span>
-                  </div>
-                )}
-                
                 <div className="flex justify-between items-center pt-2">
                   <span className="text-xl font-bold text-orange-600">
-                    €{product.price.toFixed(2)}
+                    €{product.price}
                   </span>
                   <button 
                     className="bg-orange-500 hover:bg-orange-600 text-white font-medium py-2 px-3 rounded-md transition-colors text-sm"
-                    onClick={() => {
-                      dispatch(addToCart({
-                        product: product,
-                        quantity: 1
-                      }));
-                      alert(`${product.name} agregado al carrito`);
-                    }}
+                    onClick={() => handleAddToCart(product)}
                   >
                     Agregar
                   </button>

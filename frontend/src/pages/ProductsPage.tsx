@@ -1,23 +1,49 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { useDispatch } from 'react-redux';
-import { addToCart } from '../store/slices/cartSlice';
-import { mockProducts, categories } from '../data/mockProducts';
+import { addToCartAsync } from '../store/slices/cartSlice';
+import { fetchProducts } from '../store/slices/productsSlice';
+import { useAppSelector } from '../hooks/redux';
+import type { AppDispatch } from '../store/store';
+import type { Product } from '../types';
 import ProductImage from '../components/common/ProductImage';
 
 const ProductsPage = () => {
   const [selectedCategory, setSelectedCategory] = useState('');
   const [searchTerm, setSearchTerm] = useState('');
-  const dispatch = useDispatch();
+  const dispatch = useDispatch<AppDispatch>();
+  const { products } = useAppSelector((state) => state.products);
+  const { isAuthenticated } = useAppSelector((state) => state.auth);
 
-  const filteredProducts = mockProducts.filter(product => {
+  useEffect(() => {
+    // Cargar productos al montar el componente
+    dispatch(fetchProducts({ page: 1, limit: 50 }));
+  }, [dispatch]);
+
+  const handleAddToCart = (product: Product) => {
+    if (!isAuthenticated) {
+      alert('Debes iniciar sesión para agregar productos al carrito');
+      return;
+    }
+    
+    dispatch(addToCartAsync({
+      productId: product.id,
+      quantity: 1
+    }));
+    alert(`${product.name} agregado al carrito`);
+  };
+
+  // Obtener categorías únicas de los productos
+  const categories = Array.isArray(products) ? [...new Set(products.map(product => product.category))] : [];
+
+  const filteredProducts = Array.isArray(products) ? products.filter(product => {
     const matchesCategory = !selectedCategory || product.category === selectedCategory;
     const matchesSearch = !searchTerm || 
       product.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      product.description.toLowerCase().includes(searchTerm.toLowerCase());
+      (product.description && product.description.toLowerCase().includes(searchTerm.toLowerCase()));
     
     return matchesCategory && matchesSearch;
-  });
+  }) : [];
 
   return (
     <div className="space-y-6">
@@ -58,8 +84,8 @@ const ProductsPage = () => {
             >
               <option value="">Todas las categorías</option>
               {categories.map(category => (
-                <option key={category.id} value={category.name}>
-                  {category.name} ({category.count})
+                <option key={category} value={category}>
+                  {category}
                 </option>
               ))}
             </select>
@@ -75,7 +101,7 @@ const ProductsPage = () => {
             <Link to={`/product/${product.id}`} className="block">
               <div className="h-48 bg-gray-200 flex items-center justify-center hover:bg-gray-300 transition-colors overflow-hidden">
                 <ProductImage 
-                  src={product.imageUrl} 
+                  src={product.image_url} 
                   alt={product.name}
                   className="w-full h-full object-cover hover:scale-105 transition-transform duration-300"
                   fallbackText="Imagen no disponible"
@@ -95,31 +121,13 @@ const ProductsPage = () => {
               <p className="text-gray-600 text-sm line-clamp-2">{product.description}</p>
               <p className="text-sm text-gray-500">{product.category}</p>
               
-              {/* Rating si está disponible */}
-              {product.rating && (
-                <div className="flex items-center text-sm text-gray-500">
-                  <span className="text-yellow-400">★</span>
-                  <span className="ml-1">{product.rating}</span>
-                  {product.reviews && (
-                    <span className="ml-1">({product.reviews} reseñas)</span>
-                  )}
-                </div>
-              )}
-              
               <div className="flex justify-between items-center pt-4">
                 <span className="text-xl font-bold text-orange-600">
-                  €{product.price.toFixed(2)}
+                  €{product.price}
                 </span>
                 <button 
                   className="bg-orange-500 hover:bg-orange-600 text-white font-medium py-2 px-4 rounded-md transition-colors"
-                  onClick={() => {
-                    dispatch(addToCart({
-                      product: product,
-                      quantity: 1
-                    }));
-                    // Mostrar feedback visual
-                    alert(`${product.name} agregado al carrito`);
-                  }}
+                  onClick={() => handleAddToCart(product)}
                 >
                   Agregar al Carrito
                 </button>

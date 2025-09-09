@@ -1,24 +1,33 @@
 import { useDispatch } from 'react-redux';
+import { useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { updateQuantity, removeFromCart } from '../store/slices/cartSlice';
+import { updateCartItemAsync, removeFromCartAsync, fetchCart } from '../store/slices/cartSlice';
+import type { AppDispatch } from '../store/store';
 import { useAppSelector } from '../hooks/redux';
 import type { CartItem } from '../types';
 import ProductImage from '../components/common/ProductImage';
 
 const CartPage = () => {
-  const dispatch = useDispatch();
+  const dispatch = useDispatch<AppDispatch>();
   const { items, total, itemCount } = useAppSelector((state) => state.cart);
+  const { isAuthenticated } = useAppSelector((state) => state.auth);
+
+  useEffect(() => {
+    if (isAuthenticated) {
+      dispatch(fetchCart());
+    }
+  }, [dispatch, isAuthenticated]);
 
   const handleQuantityChange = (productId: number, newQuantity: number) => {
     if (newQuantity < 1) {
-      dispatch(removeFromCart(productId));
+      dispatch(removeFromCartAsync(productId));
     } else {
-      dispatch(updateQuantity({ productId, quantity: newQuantity }));
+      dispatch(updateCartItemAsync({ productId, quantity: newQuantity }));
     }
   };
 
   const handleRemoveItem = (productId: number) => {
-    dispatch(removeFromCart(productId));
+    dispatch(removeFromCartAsync(productId));
   };
 
   if (items.length === 0) {
@@ -55,7 +64,7 @@ const CartPage = () => {
                 {/* Product Image */}
                 <div className="w-20 h-20 bg-gray-200 rounded-md flex items-center justify-center flex-shrink-0 overflow-hidden">
                   <ProductImage 
-                    src={item.product.imageUrl} 
+                    src={item.product.image_url} 
                     alt={item.product.name}
                     className="w-full h-full object-cover"
                     fallbackText="Sin imagen"
@@ -69,21 +78,21 @@ const CartPage = () => {
                   <h3 className="font-semibold text-lg">{item.product.name}</h3>
                   <p className="text-gray-600">{item.product.description}</p>
                   <p className="text-orange-600 font-semibold">
-                    €{item.price.toFixed(2)}
+                    €{item.product.price}
                   </p>
                 </div>
 
                 {/* Quantity Controls */}
                 <div className="flex items-center space-x-2">
                   <button
-                    onClick={() => handleQuantityChange(item.productId, item.quantity - 1)}
+                    onClick={() => handleQuantityChange(item.product_id, item.quantity - 1)}
                     className="w-8 h-8 rounded-full bg-gray-200 hover:bg-gray-300 flex items-center justify-center"
                   >
                     -
                   </button>
                   <span className="w-12 text-center font-semibold">{item.quantity}</span>
                   <button
-                    onClick={() => handleQuantityChange(item.productId, item.quantity + 1)}
+                    onClick={() => handleQuantityChange(item.product_id, item.quantity + 1)}
                     className="w-8 h-8 rounded-full bg-gray-200 hover:bg-gray-300 flex items-center justify-center"
                   >
                     +
@@ -92,7 +101,7 @@ const CartPage = () => {
 
                 {/* Remove Button */}
                 <button
-                  onClick={() => handleRemoveItem(item.productId)}
+                  onClick={() => handleRemoveItem(item.product_id)}
                   className="text-red-500 hover:text-red-700 p-2"
                 >
                   🗑️
@@ -109,7 +118,7 @@ const CartPage = () => {
           <div className="space-y-2 mb-4">
             <div className="flex justify-between">
               <span>Subtotal:</span>
-              <span>€{total.toFixed(2)}</span>
+              <span>€{Number(total).toFixed(2)}</span>
             </div>
             <div className="flex justify-between">
               <span>Envío:</span>
@@ -117,7 +126,7 @@ const CartPage = () => {
             </div>
             <div className="border-t pt-2 flex justify-between font-semibold text-lg">
               <span>Total:</span>
-              <span>€{total.toFixed(2)}</span>
+              <span>€{Number(total).toFixed(2)}</span>
             </div>
           </div>
 

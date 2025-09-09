@@ -1,100 +1,92 @@
-import { createSlice } from '@reduxjs/toolkit';
-import type { PayloadAction } from '@reduxjs/toolkit';
+import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
+import { productsAPI } from '../../services/api';
 import type { Product } from '../../types';
 
 interface ProductsState {
   products: Product[];
   selectedProduct: Product | null;
-  isLoading: boolean;
+  loading: boolean;
   error: string | null;
-  filters: {
-    category: string;
-    minPrice: number;
-    maxPrice: number;
-    searchTerm: string;
-  };
-  pagination: {
-    page: number;
-    limit: number;
-    total: number;
-    totalPages: number;
-  };
 }
 
 const initialState: ProductsState = {
   products: [],
   selectedProduct: null,
-  isLoading: false,
+  loading: false,
   error: null,
-  filters: {
-    category: '',
-    minPrice: 0,
-    maxPrice: 1000,
-    searchTerm: '',
-  },
-  pagination: {
-    page: 1,
-    limit: 12,
-    total: 0,
-    totalPages: 0,
-  },
 };
+
+// Async thunks
+export const fetchProducts = createAsyncThunk(
+  'products/fetchProducts',
+  async (params: { page?: number; limit?: number; category?: string; search?: string } = {}, { rejectWithValue }) => {
+    try {
+      const response = await productsAPI.getProducts(params);
+      // La API devuelve { success: true, data: [...] }
+      return response.data.data || response.data;
+    } catch (error: unknown) {
+      const err = error as any;
+      return rejectWithValue(err.response?.data?.message || 'Error al cargar productos');
+    }
+  }
+);
+
+export const fetchProductById = createAsyncThunk(
+  'products/fetchProductById',
+  async (id: number, { rejectWithValue }) => {
+    try {
+      const response = await productsAPI.getProduct(id);
+      // La API devuelve { success: true, data: {...} }
+      return response.data.data || response.data;
+    } catch (error: unknown) {
+      const err = error as any;
+      return rejectWithValue(err.response?.data?.message || 'Error al cargar producto');
+    }
+  }
+);
 
 const productsSlice = createSlice({
   name: 'products',
   initialState,
   reducers: {
-    setLoading: (state, action: PayloadAction<boolean>) => {
-      state.isLoading = action.payload;
-    },
-    
-    setProducts: (state, action: PayloadAction<Product[]>) => {
-      state.products = action.payload;
-      state.isLoading = false;
-      state.error = null;
-    },
-    
-    setSelectedProduct: (state, action: PayloadAction<Product | null>) => {
-      state.selectedProduct = action.payload;
-    },
-    
-    setError: (state, action: PayloadAction<string>) => {
-      state.error = action.payload;
-      state.isLoading = false;
-    },
-    
-    setFilters: (state, action: PayloadAction<Partial<ProductsState['filters']>>) => {
-      state.filters = { ...state.filters, ...action.payload };
-    },
-    
-    setPagination: (state, action: PayloadAction<Partial<ProductsState['pagination']>>) => {
-      state.pagination = { ...state.pagination, ...action.payload };
-    },
-    
     clearError: (state) => {
       state.error = null;
     },
-    
-    clearFilters: (state) => {
-      state.filters = {
-        category: '',
-        minPrice: 0,
-        maxPrice: 1000,
-        searchTerm: '',
-      };
+    clearSelectedProduct: (state) => {
+      state.selectedProduct = null;
     },
+  },
+  extraReducers: (builder) => {
+    builder
+      // Fetch products
+      .addCase(fetchProducts.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(fetchProducts.fulfilled, (state, action) => {
+        state.loading = false;
+        state.products = action.payload;
+      })
+      .addCase(fetchProducts.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload as string;
+      })
+      
+      // Fetch product by ID
+      .addCase(fetchProductById.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(fetchProductById.fulfilled, (state, action) => {
+        state.loading = false;
+        state.selectedProduct = action.payload;
+      })
+      .addCase(fetchProductById.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload as string;
+      });
   },
 });
 
-export const {
-  setLoading,
-  setProducts,
-  setSelectedProduct,
-  setError,
-  setFilters,
-  setPagination,
-  clearError,
-  clearFilters,
-} = productsSlice.actions;
-
+export const { clearError, clearSelectedProduct } = productsSlice.actions;
 export default productsSlice.reducer;

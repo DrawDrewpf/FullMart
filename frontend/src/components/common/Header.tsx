@@ -1,9 +1,17 @@
 import { Link } from 'react-router-dom';
+import { useDispatch } from 'react-redux';
+import { logout } from '../../store/slices/authSlice';
 import { useAppSelector } from '../../hooks/redux';
+import type { AppDispatch } from '../../store/store';
 
 const Header = () => {
+  const dispatch = useDispatch<AppDispatch>();
   const { itemCount } = useAppSelector((state) => state.cart);
   const { isAuthenticated, user } = useAppSelector((state) => state.auth);
+
+  const handleLogout = () => {
+    dispatch(logout());
+  };
 
   return (
     <header className="bg-white shadow-md">
@@ -42,19 +50,28 @@ const Header = () => {
             {/* Auth */}
             {isAuthenticated ? (
               <div className="flex items-center space-x-2">
-                <span className="text-gray-700">Hola, {user?.firstName}</span>
-                <button className="text-gray-500 hover:text-gray-700">
+                <span className="text-gray-700">Hola, {user?.username}</span>
+                <button 
+                  onClick={handleLogout}
+                  className="text-gray-500 hover:text-gray-700"
+                >
                   Salir
                 </button>
               </div>
             ) : (
               <div className="space-x-2">
-                <button className="text-gray-700 hover:text-orange-600">
+                <Link 
+                  to="/login"
+                  className="text-gray-700 hover:text-orange-600"
+                >
                   Iniciar Sesión
-                </button>
-                <button className="bg-orange-500 hover:bg-orange-600 text-white font-medium py-2 px-4 rounded-md transition-colors">
+                </Link>
+                <Link 
+                  to="/register"
+                  className="bg-orange-500 hover:bg-orange-600 text-white font-medium py-2 px-4 rounded-md transition-colors"
+                >
                   Registrarse
-                </button>
+                </Link>
               </div>
             )}
           </div>

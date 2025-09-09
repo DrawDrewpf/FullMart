@@ -1,18 +1,26 @@
 import { useParams, Link, Navigate } from 'react-router-dom';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useDispatch } from 'react-redux';
-import { addToCart } from '../store/slices/cartSlice';
-import { mockProducts } from '../data/mockProducts';
-import type { Product } from '../types';
+import { addToCartAsync } from '../store/slices/cartSlice';
+import { fetchProductById } from '../store/slices/productsSlice';
+import type { AppDispatch } from '../store/store';
+import { useAppSelector } from '../hooks/redux';
 import ProductImage from '../components/common/ProductImage';
 
 const ProductDetailPage = () => {
   const { id } = useParams<{ id: string }>();
-  const dispatch = useDispatch();
+  const dispatch = useDispatch<AppDispatch>();
   const [quantity, setQuantity] = useState(1);
 
-  // Buscar producto por ID
-  const product: Product | undefined = mockProducts.find(p => p.id === Number(id));
+  const { products } = useAppSelector((state) => state.products);
+  const { isAuthenticated } = useAppSelector((state) => state.auth);
+  const product = products.find(p => p.id === Number(id));
+
+  useEffect(() => {
+    if (id && !product) {
+      dispatch(fetchProductById(Number(id)));
+    }
+  }, [id, product, dispatch]);
 
   // Si no existe el producto, redirigir a productos
   if (!product) {
@@ -20,13 +28,18 @@ const ProductDetailPage = () => {
   }
 
   const handleAddToCart = () => {
-    dispatch(addToCart({ product, quantity }));
+    if (!isAuthenticated) {
+      alert('Debes iniciar sesión para agregar productos al carrito');
+      return;
+    }
+    
+    dispatch(addToCartAsync({ productId: product.id, quantity }));
     // Mostrar notificación (más adelante implementaremos toast)
     alert(`${quantity} x ${product.name} agregado al carrito`);
   };
 
   const handleQuantityChange = (newQuantity: number) => {
-    if (newQuantity >= 1 && newQuantity <= product.stock) {
+    if (newQuantity >= 1 && newQuantity <= product.stock_quantity) {
       setQuantity(newQuantity);
     }
   };
@@ -47,7 +60,7 @@ const ProductDetailPage = () => {
         <div className="space-y-4">
           <div className="aspect-square bg-gray-200 rounded-lg overflow-hidden">
             <ProductImage 
-              src={product.imageUrl} 
+              src={product.image_url} 
               alt={product.name}
               className="w-full h-full object-cover hover:scale-105 transition-transform duration-300"
               fallbackText="Imagen no disponible actualmente"
@@ -66,37 +79,16 @@ const ProductDetailPage = () => {
                 {product.category}
               </span>
               <span className="text-sm text-gray-500">
-                Stock: {product.stock} disponibles
+                Stock: {product.stock_quantity} disponibles
               </span>
             </div>
             <h1 className="text-3xl font-bold text-gray-900 mb-2">{product.name}</h1>
-            
-            {/* Rating y reviews */}
-            {product.rating && product.reviews && (
-              <div className="flex items-center space-x-2 mb-4">
-                <div className="flex items-center">
-                  {[...Array(5)].map((_, i) => (
-                    <span 
-                      key={i}
-                      className={`text-lg ${
-                        i < Math.floor(product.rating!) ? 'text-orange-400' : 'text-gray-300'
-                      }`}
-                    >
-                      ★
-                    </span>
-                  ))}
-                </div>
-                <span className="text-sm text-gray-600">
-                  {product.rating} ({product.reviews} reseñas)
-                </span>
-              </div>
-            )}
           </div>
 
           {/* Precio */}
           <div className="border-t border-b py-4">
             <span className="text-4xl font-bold text-orange-600">
-              €{product.price.toFixed(2)}
+              €{product.price}
             </span>
           </div>
 
@@ -105,21 +97,6 @@ const ProductDetailPage = () => {
             <h3 className="text-lg font-semibold mb-2">Descripción</h3>
             <p className="text-gray-700 leading-relaxed">{product.description}</p>
           </div>
-
-          {/* Características */}
-          {product.features && product.features.length > 0 && (
-            <div>
-              <h3 className="text-lg font-semibold mb-3">Características</h3>
-              <ul className="grid grid-cols-2 gap-2">
-                {product.features.map((feature, index) => (
-                  <li key={index} className="flex items-center text-sm text-gray-700">
-                    <span className="w-2 h-2 bg-orange-500 rounded-full mr-2"></span>
-                    {feature}
-                  </li>
-                ))}
-              </ul>
-            </div>
-          )}
 
           {/* Controles de cantidad y agregar al carrito */}
           <div className="border-t pt-6">
@@ -136,7 +113,7 @@ const ProductDetailPage = () => {
                 <span className="px-4 py-2 border-x">{quantity}</span>
                 <button
                   onClick={() => handleQuantityChange(quantity + 1)}
-                  disabled={quantity >= product.stock}
+                  disabled={quantity >= product.stock_quantity}
                   className="px-3 py-2 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   +
@@ -147,10 +124,10 @@ const ProductDetailPage = () => {
             <div className="space-y-3">
               <button
                 onClick={handleAddToCart}
-                disabled={product.stock === 0}
+                disabled={product.stock_quantity === 0}
                 className="w-full bg-orange-500 hover:bg-orange-600 disabled:bg-gray-300 text-white font-medium py-3 px-6 rounded-lg transition-colors disabled:cursor-not-allowed"
               >
-                {product.stock === 0 ? 'Sin Stock' : `Agregar al Carrito - €${(product.price * quantity).toFixed(2)}`}
+                {product.stock_quantity === 0 ? 'Sin Stock' : `Agregar al Carrito - €${(Number(product.price) * quantity).toFixed(2)}`}
               </button>
               
               <Link 

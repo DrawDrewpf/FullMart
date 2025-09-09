@@ -1,93 +1,52 @@
-// User types
-export interface User {
-  id: number;
-  email: string;
-  firstName: string;
-  lastName: string;
-  role: 'user' | 'admin';
-  createdAt: string;
-}
-
-// Product types
+// Tipos que coinciden exactamente con el backend
 export interface Product {
   id: number;
   name: string;
   description: string;
   price: number;
-  imageUrl?: string;
+  image_url: string;
   category: string;
-  stock: number;
-  rating?: number;
-  reviews?: number;
-  features?: string[];
-  createdAt: string;
+  stock_quantity: number;
+  is_active: boolean;
+  created_at: string;
+  updated_at: string;
 }
 
-// Cart types
+export interface User {
+  id: number;
+  username: string;
+  email: string;
+  role: string;
+  created_at: string;
+  updated_at: string;
+}
+
 export interface CartItem {
   id: number;
-  productId: number;
-  product: Product;
+  user_id: number;
+  product_id: number;
   quantity: number;
-  price: number;
-}
-
-export interface Cart {
-  items: CartItem[];
-  total: number;
-  itemCount: number;
-}
-
-// Order types
-export interface OrderItem {
-  id: number;
-  productId: number;
   product: Product;
-  quantity: number;
-  price: number;
 }
 
-export interface Order {
-  id: number;
-  userId: number;
-  items: OrderItem[];
-  total: number;
-  status: 'pending' | 'processing' | 'shipped' | 'delivered' | 'cancelled';
-  createdAt: string;
-}
-
-// Auth types
 export interface LoginCredentials {
   email: string;
   password: string;
 }
 
 export interface RegisterData {
+  username: string;
   email: string;
   password: string;
-  firstName: string;
-  lastName: string;
 }
 
-export interface AuthState {
-  user: User | null;
-  token: string | null;
-  isAuthenticated: boolean;
-  isLoading: boolean;
-  error: string | null;
+export interface AuthResponse {
+  user: User;
+  token: string;
 }
 
-// API Response types
 export interface ApiResponse<T> {
-  data: T;
-  message: string;
   success: boolean;
-}
-
-export interface PaginatedResponse<T> {
-  data: T[];
-  total: number;
-  page: number;
-  limit: number;
-  totalPages: number;
+  data: T;
+  message?: string;
 }
