@@ -1,10 +1,10 @@
 import { useState } from 'react';
-import { useSelector } from 'react-redux';
 import { Link } from 'react-router-dom';
-import type { RootState } from '../store/store';
+import { useAppSelector } from '../hooks/redux';
+import type { CartItem } from '../types';
 
 const CheckoutPage = () => {
-  const { items, total } = useSelector((state: RootState) => state.cart);
+  const { items, total } = useAppSelector((state) => state.cart);
   const [formData, setFormData] = useState({
     email: '',
     firstName: '',
@@ -173,7 +173,7 @@ const CheckoutPage = () => {
           <h2 className="text-xl font-semibold mb-6">Resumen del Pedido</h2>
           
           <div className="space-y-4 mb-6">
-            {items.map((item: any) => (
+            {items.map((item: CartItem) => (
               <div key={item.id} className="flex justify-between items-center">
                 <div>
                   <h4 className="font-medium">{item.product.name}</h4>

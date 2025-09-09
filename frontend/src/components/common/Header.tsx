@@ -1,10 +1,9 @@
 import { Link } from 'react-router-dom';
-import { useSelector } from 'react-redux';
-import type { RootState } from '../../store/store';
+import { useAppSelector } from '../../hooks/redux';
 
 const Header = () => {
-  const { itemCount } = useSelector((state: RootState) => state.cart);
-  const { isAuthenticated, user } = useSelector((state: RootState) => state.auth);
+  const { itemCount } = useAppSelector((state) => state.cart);
+  const { isAuthenticated, user } = useAppSelector((state) => state.auth);
 
   return (
     <header className="bg-white shadow-md">

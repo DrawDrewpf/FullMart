@@ -1,11 +1,12 @@
-import { useSelector, useDispatch } from 'react-redux';
+import { useDispatch } from 'react-redux';
 import { Link } from 'react-router-dom';
-import type { RootState } from '../store/store';
 import { updateQuantity, removeFromCart } from '../store/slices/cartSlice';
+import { useAppSelector } from '../hooks/redux';
+import type { CartItem } from '../types';
 
 const CartPage = () => {
   const dispatch = useDispatch();
-  const { items, total, itemCount } = useSelector((state: RootState) => state.cart);
+  const { items, total, itemCount } = useAppSelector((state) => state.cart);
 
   const handleQuantityChange = (productId: number, newQuantity: number) => {
     if (newQuantity < 1) {
@@ -47,7 +48,7 @@ const CartPage = () => {
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         {/* Cart Items */}
         <div className="lg:col-span-2 space-y-4">
-          {items.map((item) => (
+          {items.map((item: CartItem) => (
             <div key={item.id} className="bg-white rounded-lg shadow-md p-6">
               <div className="flex items-center space-x-4">
                 {/* Product Image */}
