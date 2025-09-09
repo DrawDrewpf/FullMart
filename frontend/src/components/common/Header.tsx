@@ -10,16 +10,16 @@ const Header = () => {
       <div className="container mx-auto px-4">
         <div className="flex items-center justify-between h-16">
           {/* Logo */}
-          <Link to="/" className="text-2xl font-bold text-blue-600">
+          <Link to="/" className="text-2xl font-bold text-orange-600">
             🛒 FullMart
           </Link>
 
           {/* Navigation */}
           <nav className="hidden md:flex space-x-8">
-            <Link to="/" className="text-gray-700 hover:text-blue-600 transition-colors">
+            <Link to="/" className="text-gray-700 hover:text-orange-600 transition-colors">
               Inicio
             </Link>
-            <Link to="/products" className="text-gray-700 hover:text-blue-600 transition-colors">
+            <Link to="/products" className="text-gray-700 hover:text-orange-600 transition-colors">
               Productos
             </Link>
           </nav>
@@ -49,10 +49,10 @@ const Header = () => {
               </div>
             ) : (
               <div className="space-x-2">
-                <button className="text-gray-700 hover:text-blue-600">
+                <button className="text-gray-700 hover:text-orange-600">
                   Iniciar Sesión
                 </button>
-                <button className="bg-blue-500 hover:bg-blue-600 text-white font-medium py-2 px-4 rounded-md transition-colors">
+                <button className="bg-orange-500 hover:bg-orange-600 text-white font-medium py-2 px-4 rounded-md transition-colors">
                   Registrarse
                 </button>
               </div>

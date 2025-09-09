@@ -49,7 +49,7 @@ const ProductsPage = () => {
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               placeholder="Buscar por nombre o descripción..."
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
             />
           </div>
 
@@ -62,7 +62,7 @@ const ProductsPage = () => {
               id="category"
               value={selectedCategory}
               onChange={(e) => setSelectedCategory(e.target.value)}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
             >
               <option value="">Todas las categorías</option>
               {categories.map(category => (
@@ -89,11 +89,11 @@ const ProductsPage = () => {
               <p className="text-sm text-gray-500">{product.category}</p>
               
               <div className="flex justify-between items-center pt-4">
-                <span className="text-xl font-bold text-blue-600">
+                <span className="text-xl font-bold text-orange-600">
                   ${product.price.toFixed(2)}
                 </span>
                 <button 
-                  className="bg-blue-500 hover:bg-blue-600 text-white font-medium py-2 px-4 rounded-md transition-colors"
+                  className="bg-orange-500 hover:bg-orange-600 text-white font-medium py-2 px-4 rounded-md transition-colors"
                   onClick={() => {
                     // TODO: Implement add to cart
                     alert(`Agregado ${product.name} al carrito`);

@@ -15,10 +15,10 @@ const Footer = () => {
           <div>
             <h3 className="text-lg font-semibold mb-4">Enlaces</h3>
             <ul className="space-y-2 text-gray-300">
-              <li><a href="/" className="hover:text-white transition-colors">Inicio</a></li>
-              <li><a href="/products" className="hover:text-white transition-colors">Productos</a></li>
-              <li><a href="/about" className="hover:text-white transition-colors">Acerca de</a></li>
-              <li><a href="/contact" className="hover:text-white transition-colors">Contacto</a></li>
+              <li><a href="/" className="hover:text-orange-300 transition-colors">Inicio</a></li>
+              <li><a href="/products" className="hover:text-orange-300 transition-colors">Productos</a></li>
+              <li><a href="/about" className="hover:text-orange-300 transition-colors">Acerca de</a></li>
+              <li><a href="/contact" className="hover:text-orange-300 transition-colors">Contacto</a></li>
             </ul>
           </div>
 
@@ -26,9 +26,9 @@ const Footer = () => {
           <div>
             <h3 className="text-lg font-semibold mb-4">Contacto</h3>
             <div className="text-gray-300 space-y-2">
-              <p>📧 info@fullmart.com</p>
-              <p>📞 +1 (555) 123-4567</p>
-              <p>📍 123 Commerce St, City, State 12345</p>
+              <p>📧 drawthedrewpf@gmail.com</p>
+              <p>📞 +34 646889481</p>
+              <p>📍 Madrid, Madrid</p>
             </div>
           </div>
         </div>

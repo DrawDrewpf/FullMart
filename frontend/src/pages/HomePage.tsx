@@ -4,7 +4,7 @@ const HomePage = () => {
   return (
     <div className="space-y-12">
       {/* Hero Section */}
-      <section className="text-center py-20 bg-gradient-to-r from-blue-500 to-blue-700 text-white rounded-lg">
+      <section className="text-center py-20 bg-gradient-to-r  bg-orange-400 text-white rounded-lg">
         <h1 className="text-4xl md:text-6xl font-bold mb-6">
           Bienvenido a FullMart
         </h1>
@@ -13,7 +13,7 @@ const HomePage = () => {
         </p>
         <Link 
           to="/products" 
-          className="inline-block bg-white text-blue-600 font-semibold py-3 px-8 rounded-lg hover:bg-gray-100 transition-colors"
+          className="inline-block bg-white text-orange-600 font-semibold py-3 px-8 rounded-lg hover:bg-gray-100 transition-colors"
         >
           Ver Productos
         </Link>
@@ -53,8 +53,8 @@ const HomePage = () => {
               <h3 className="font-semibold mb-2">Producto {item}</h3>
               <p className="text-gray-600 mb-4">Descripción del producto...</p>
               <div className="flex justify-between items-center">
-                <span className="text-xl font-bold text-blue-600">$99.99</span>
-                <button className="bg-blue-500 hover:bg-blue-600 text-white font-medium py-2 px-4 rounded-md transition-colors">Agregar</button>
+                <span className="text-xl font-bold text-orange-600">$99.99</span>
+                <button className="bg-orange-500 hover:bg-orange-600 text-white font-medium py-2 px-4 rounded-md transition-colors">Agregar</button>
               </div>
             </div>
           ))}

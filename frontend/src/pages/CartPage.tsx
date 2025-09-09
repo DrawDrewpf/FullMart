@@ -28,7 +28,7 @@ const CartPage = () => {
         <p className="text-gray-600 mb-8">
           ¡Agrega algunos productos para empezar a comprar!
         </p>
-        <Link to="/products" className="bg-blue-500 hover:bg-blue-600 text-white font-medium py-2 px-4 rounded-md transition-colors">
+        <Link to="/products" className="bg-orange-500 hover:bg-orange-600 text-white font-medium py-2 px-4 rounded-md transition-colors">
           Explorar Productos
         </Link>
       </div>
@@ -60,7 +60,7 @@ const CartPage = () => {
                 <div className="flex-grow">
                   <h3 className="font-semibold text-lg">{item.product.name}</h3>
                   <p className="text-gray-600">{item.product.description}</p>
-                  <p className="text-blue-600 font-semibold">
+                  <p className="text-orange-600 font-semibold">
                     ${item.price.toFixed(2)}
                   </p>
                 </div>
@@ -115,7 +115,7 @@ const CartPage = () => {
 
           <Link 
             to="/checkout" 
-            className="w-full bg-blue-500 hover:bg-blue-600 text-white font-medium py-2 px-4 rounded-md transition-colors block text-center"
+            className="w-full bg-orange-500 hover:bg-orange-600 text-white font-medium py-2 px-4 rounded-md transition-colors block text-center"
           >
             Proceder al Checkout
           </Link>
