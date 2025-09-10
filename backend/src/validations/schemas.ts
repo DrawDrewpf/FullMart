@@ -61,6 +61,18 @@ export const cartItemUpdateSchema = z.object({
 });
 
 // Order validation schemas
+export const createOrderSchema = z.object({
+  shipping_name: z.string().min(2, 'El nombre debe tener al menos 2 caracteres'),
+  shipping_email: z.string().email('Email inválido'),
+  shipping_phone: z.string().optional(),
+  shipping_address: z.string().min(5, 'La dirección debe tener al menos 5 caracteres'),
+  shipping_city: z.string().min(2, 'La ciudad debe tener al menos 2 caracteres'),
+  shipping_state: z.string().min(2, 'El estado/provincia debe tener al menos 2 caracteres'),
+  shipping_postal_code: z.string().min(3, 'El código postal debe tener al menos 3 caracteres'),
+  shipping_country: z.string().min(2, 'El país debe tener al menos 2 caracteres').default('España'),
+  payment_method: z.enum(['credit_card', 'debit_card', 'paypal', 'bank_transfer']).default('credit_card'),
+});
+
 export const addressSchema = z.object({
   firstName: z.string().min(2, 'El nombre debe tener al menos 2 caracteres'),
   lastName: z.string().min(2, 'El apellido debe tener al menos 2 caracteres'),
@@ -97,6 +109,7 @@ export type ProductUpdateInput = z.infer<typeof productUpdateSchema>;
 export type ProductQueryInput = z.infer<typeof productQuerySchema>;
 export type CartItemCreateInput = z.infer<typeof cartItemCreateSchema>;
 export type CartItemUpdateInput = z.infer<typeof cartItemUpdateSchema>;
+export type CreateOrderInput = z.infer<typeof createOrderSchema>;
 export type OrderCreateInput = z.infer<typeof orderCreateSchema>;
 export type AddressInput = z.infer<typeof addressSchema>;
 export type IdParam = z.infer<typeof idParamSchema>;
