@@ -31,11 +31,8 @@ router.post('/', authenticateToken, validateBody(createOrderSchema), async (req,
   try {
     await client.query('BEGIN');
     
-    console.log('🔍 Creating order - User info:', req.user);
     const userId = req.user!.id;
     const orderData = req.body as CreateOrderRequest;
-    console.log('🔍 Creating order - Order data:', orderData);
-    console.log('🔍 Creating order - User ID:', userId);
     
     // 1. Get user's cart items
     const cartQuery = `
@@ -51,15 +48,10 @@ router.post('/', authenticateToken, validateBody(createOrderSchema), async (req,
       WHERE ci.user_id = $1
     `;
     
-    console.log('🔍 Creating order - Executing cart query for user:', userId);
-    
-    console.log('🔍 Creating order - Executing cart query for user:', userId);
     const cartResult = await client.query(cartQuery, [userId]);
-    console.log('🔍 Creating order - Cart result:', cartResult.rows);
     
     if (cartResult.rows.length === 0) {
       await client.query('ROLLBACK');
-      console.log('❌ Creating order - Cart is empty');
       return res.status(400).json({
         success: false,
         error: 'El carrito está vacío'

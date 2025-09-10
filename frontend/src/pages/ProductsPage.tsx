@@ -34,7 +34,7 @@ const ProductsPage = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [searchInput, setSearchInput] = useState('');
   const [filters, setFilters] = useState<{
-    category?: string;
+    categories?: string[];
     minPrice?: number;
     maxPrice?: number;
     sortBy?: string;
@@ -77,7 +77,6 @@ const ProductsPage = () => {
     // Verificar cache primero
     const cachedData = getCachedData(cacheKey);
     if (cachedData) {
-      console.log('Usando datos de cache para:', cacheKey);
       setProducts(cachedData.data);
       setCurrentPage(cachedData.pagination.page);
       setTotalPages(cachedData.pagination.totalPages);
@@ -99,8 +98,10 @@ const ProductsPage = () => {
       }
 
       // Add filters to params
-      if (currentFilters.category) {
-        params.append('category', currentFilters.category);
+      if (currentFilters.categories && currentFilters.categories.length > 0) {
+        // Send categories as comma-separated string
+        const categoriesString = currentFilters.categories.join(',');
+        params.append('category', categoriesString);
       }
       if (currentFilters.minPrice !== undefined) {
         params.append('minPrice', currentFilters.minPrice.toString());
@@ -118,8 +119,8 @@ const ProductsPage = () => {
         params.append('inStock', 'true');
       }
 
-      console.log('Fetching from API:', params.toString());
-      const response = await fetch(`/api/products?${params.toString()}`);
+      const finalUrl = `/api/products?${params.toString()}`;
+      const response = await fetch(finalUrl);
       
       if (!response.ok) {
         throw new Error(`Error ${response.status}: ${response.statusText}`);

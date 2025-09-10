@@ -101,15 +101,9 @@ const cartSlice = createSlice({
       })
       .addCase(fetchCart.fulfilled, (state, action) => {
         state.loading = false;
-        console.log('📦 Cart loaded:', action.payload);
         state.items = action.payload.items || [];
         state.total = action.payload.total || 0;
         state.itemCount = state.items.reduce((sum, item) => sum + item.quantity, 0);
-        console.log('📦 Cart state updated:', { 
-          itemsCount: state.items.length, 
-          total: state.total, 
-          itemCount: state.itemCount 
-        });
       })
       .addCase(fetchCart.rejected, (state, action) => {
         state.loading = false;
@@ -123,15 +117,9 @@ const cartSlice = createSlice({
       })
       .addCase(addToCartAsync.fulfilled, (state, action) => {
         state.loading = false;
-        console.log('➕ Item added to cart:', action.payload);
         state.items = action.payload.items || [];
         state.total = action.payload.total || 0;
         state.itemCount = state.items.reduce((sum, item) => sum + item.quantity, 0);
-        console.log('➕ Cart after add:', { 
-          itemsCount: state.items.length, 
-          total: state.total, 
-          itemCount: state.itemCount 
-        });
       })
       .addCase(addToCartAsync.rejected, (state, action) => {
         state.loading = false;

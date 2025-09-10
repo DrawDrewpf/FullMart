@@ -1,3 +1,22 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+/* Custom orange checkbox and radio button styles */
+input[type="checkbox"], 
+input[type="radio"] {
+  accent-color: #ea580c; /* orange-600 */
+}
+
+/* For better browser compatibility */
+input[type="checkbox"]:checked,
+input[type="radio"]:checked {
+  background-color: #ea580c;
+  border-color: #ea580c;
+}
+
+input[type="checkbox"]:focus,
+input[type="radio"]:focus {
+  ring-color: #fb923c; /* orange-400 */
+  border-color: #ea580c;
+}

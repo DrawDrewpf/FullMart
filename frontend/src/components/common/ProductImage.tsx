@@ -42,7 +42,6 @@ const ProductImage: React.FC<ProductImageProps> = ({
   const [imageToShow, setImageToShow] = useState<string>(src || '');
 
   const handleError = () => {
-    console.log('Image failed to load:', src);
     setHasError(true);
     // Intentar con una imagen placeholder funcional
     const placeholderImg = getPlaceholderImageByCat(category);

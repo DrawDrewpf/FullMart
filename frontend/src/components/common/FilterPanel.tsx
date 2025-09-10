@@ -21,7 +21,7 @@ interface FiltersData {
 
 interface FilterPanelProps {
   onFiltersChange: (filters: {
-    category?: string;
+    categories?: string[];
     minPrice?: number;
     maxPrice?: number;
     sortBy?: string;
@@ -29,7 +29,7 @@ interface FilterPanelProps {
     inStock?: boolean;
   }) => void;
   currentFilters: {
-    category?: string;
+    categories?: string[];
     minPrice?: number;
     maxPrice?: number;
     sortBy?: string;
@@ -83,9 +83,21 @@ const FilterPanel = ({ onFiltersChange, currentFilters }: FilterPanelProps) => {
   };
 
   const handleCategoryChange = (category: string) => {
+    const currentCategories = currentFilters.categories || [];
+    const isSelected = currentCategories.includes(category);
+    
+    let newCategories: string[];
+    if (isSelected) {
+      // Remove category if already selected
+      newCategories = currentCategories.filter(cat => cat !== category);
+    } else {
+      // Add category if not selected
+      newCategories = [...currentCategories, category];
+    }
+    
     onFiltersChange({
       ...currentFilters,
-      category: category === currentFilters.category ? undefined : category
+      categories: newCategories.length > 0 ? newCategories : undefined
     });
   };
 
@@ -212,7 +224,7 @@ const FilterPanel = ({ onFiltersChange, currentFilters }: FilterPanelProps) => {
               name="sort"
               checked={currentFilters.sortBy === 'created_at' && currentFilters.sortOrder === 'DESC'}
               onChange={() => handleSortChange('created_at', 'DESC')}
-              className="text-orange-600 focus:ring-orange-500"
+              className="h-4 w-4 text-orange-600 focus:ring-orange-500 border-gray-300 accent-orange-600"
             />
             <span className="ml-2 text-sm text-gray-700">Más recientes</span>
           </label>
@@ -222,7 +234,7 @@ const FilterPanel = ({ onFiltersChange, currentFilters }: FilterPanelProps) => {
               name="sort"
               checked={currentFilters.sortBy === 'price' && currentFilters.sortOrder === 'ASC'}
               onChange={() => handleSortChange('price', 'ASC')}
-              className="text-orange-600 focus:ring-orange-500"
+              className="h-4 w-4 text-orange-600 focus:ring-orange-500 border-gray-300 accent-orange-600"
             />
             <span className="ml-2 text-sm text-gray-700">Precio: menor a mayor</span>
           </label>
@@ -232,7 +244,7 @@ const FilterPanel = ({ onFiltersChange, currentFilters }: FilterPanelProps) => {
               name="sort"
               checked={currentFilters.sortBy === 'price' && currentFilters.sortOrder === 'DESC'}
               onChange={() => handleSortChange('price', 'DESC')}
-              className="text-orange-600 focus:ring-orange-500"
+              className="h-4 w-4 text-orange-600 focus:ring-orange-500 border-gray-300 accent-orange-600"
             />
             <span className="ml-2 text-sm text-gray-700">Precio: mayor a menor</span>
           </label>
@@ -242,7 +254,7 @@ const FilterPanel = ({ onFiltersChange, currentFilters }: FilterPanelProps) => {
               name="sort"
               checked={currentFilters.sortBy === 'name' && currentFilters.sortOrder === 'ASC'}
               onChange={() => handleSortChange('name', 'ASC')}
-              className="text-orange-600 focus:ring-orange-500"
+              className="h-4 w-4 text-orange-600 focus:ring-orange-500 border-gray-300 accent-orange-600"
             />
             <span className="ml-2 text-sm text-gray-700">Nombre A-Z</span>
           </label>
@@ -257,7 +269,7 @@ const FilterPanel = ({ onFiltersChange, currentFilters }: FilterPanelProps) => {
             type="checkbox"
             checked={currentFilters.inStock || false}
             onChange={(e) => handleInStockChange(e.target.checked)}
-            className="text-orange-600 focus:ring-orange-500 rounded"
+            className="h-4 w-4 text-orange-600 focus:ring-orange-500 border-gray-300 rounded accent-orange-600"
           />
           <span className="ml-2 text-sm text-gray-700">Solo productos en stock</span>
         </label>
@@ -347,9 +359,9 @@ const FilterPanel = ({ onFiltersChange, currentFilters }: FilterPanelProps) => {
               <div className="flex items-center">
                 <input
                   type="checkbox"
-                  checked={currentFilters.category === category.category}
+                  checked={currentFilters.categories?.includes(category.category) || false}
                   onChange={() => handleCategoryChange(category.category)}
-                  className="text-orange-600 focus:ring-orange-500 rounded"
+                  className="h-4 w-4 text-orange-600 focus:ring-orange-500 border-gray-300 rounded accent-orange-600"
                 />
                 <span className="ml-3 text-sm text-gray-700 capitalize">{category.category}</span>
               </div>

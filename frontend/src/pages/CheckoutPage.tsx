@@ -30,27 +30,11 @@ const CheckoutPage = () => {
   // Load cart on component mount
   useEffect(() => {
     if (isAuthenticated && !cartLoadAttempted) {
-      console.log('CheckoutPage: Loading cart...');
       dispatch(fetchCart()).finally(() => {
         setCartLoadAttempted(true);
       });
     }
   }, [dispatch, isAuthenticated, cartLoadAttempted]);
-
-  // Debug logging
-  useEffect(() => {
-    console.log('CheckoutPage State:', {
-      isAuthenticated,
-      cartLoadAttempted,
-      cartLoading,
-      itemsLength: items.length,
-      cartTotal,
-      items: items
-    });
-    console.log('🔍 CheckoutPage items details:', items);
-    console.log('🔍 items.length === 0?', items.length === 0);
-    console.log('🔍 Array.isArray(items)?', Array.isArray(items));
-  }, [isAuthenticated, cartLoadAttempted, cartLoading, items, cartTotal]);
 
   // Redirect if not authenticated
   if (!isAuthenticated) {
@@ -71,9 +55,7 @@ const CheckoutPage = () => {
   }
 
   // Show empty cart message if cart is empty after loading
-  console.log('🚨 About to check if cart is empty. items.length:', items.length, 'items:', items);
   if (items.length === 0) {
-    console.log('🚨 Rendering empty cart message!');
     return (
       <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="text-center">
@@ -109,8 +91,6 @@ const CheckoutPage = () => {
     e.preventDefault();
     setIsLoading(true);
     setError(null);
-
-    console.log('🚀 Attempting to create order with data:', shippingData);
 
     try {
       await ordersApi.createOrder(shippingData);
