@@ -1,5 +1,15 @@
 import axios from 'axios';
-import type { Product, User, CartItem, LoginCredentials, RegisterData, AuthResponse, ApiResponse } from '../types';
+import type { 
+  Product, 
+  User, 
+  CartItem, 
+  LoginCredentials, 
+  RegisterData, 
+  AuthResponse, 
+  ApiResponse,
+  Order,
+  CreateOrderRequest
+} from '../types';
 
 // Configuración base de la API
 const api = axios.create({
@@ -68,6 +78,18 @@ export const cartAPI = {
     
   clearCart: () => 
     api.delete<ApiResponse<void>>('/cart/clear'),
+};
+
+// Orders API
+export const ordersApi = {
+  createOrder: (orderData: CreateOrderRequest) =>
+    api.post<ApiResponse<Order>>('/orders', orderData),
+    
+  getOrders: () =>
+    api.get<ApiResponse<Order[]>>('/orders'),
+    
+  getOrder: (orderId: number) =>
+    api.get<ApiResponse<Order>>(`/orders/${orderId}`),
 };
 
 export default api;

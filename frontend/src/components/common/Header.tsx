@@ -30,6 +30,11 @@ const Header = () => {
             <Link to="/products" className="text-gray-700 hover:text-orange-600 transition-colors">
               Productos
             </Link>
+            {isAuthenticated && (
+              <Link to="/orders" className="text-gray-700 hover:text-orange-600 transition-colors">
+                Mis Pedidos
+              </Link>
+            )}
           </nav>
 
           {/* Right side */}

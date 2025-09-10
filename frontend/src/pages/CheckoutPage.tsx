@@ -1,207 +1,305 @@
 import { useState } from 'react';
-import { Link } from 'react-router-dom';
-import { useAppSelector } from '../hooks/redux';
-import type { CartItem } from '../types';
+import { useNavigate } from 'react-router-dom';
+import { useAppSelector, useAppDispatch } from '../hooks/redux';
+import { clearCartAsync } from '../store/slices/cartSlice';
+import { ordersApi } from '../services/api';
+import type { CreateOrderRequest } from '../types';
 
 const CheckoutPage = () => {
-  const { items, total } = useAppSelector((state) => state.cart);
-  const [formData, setFormData] = useState({
-    email: '',
-    firstName: '',
-    lastName: '',
-    address: '',
-    city: '',
-    postalCode: '',
-    phone: '',
+  const navigate = useNavigate();
+  const dispatch = useAppDispatch();
+  const { items, total: cartTotal } = useAppSelector((state) => state.cart);
+  const { isAuthenticated } = useAppSelector((state) => state.auth);
+  
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [shippingData, setShippingData] = useState<CreateOrderRequest>({
+    shipping_name: '',
+    shipping_email: '',
+    shipping_phone: '',
+    shipping_address: '',
+    shipping_city: '',
+    shipping_state: '',
+    shipping_postal_code: '',
+    shipping_country: 'España',
+    payment_method: 'credit_card'
   });
 
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  // Redirect if not authenticated
+  if (!isAuthenticated) {
+    navigate('/login');
+    return null;
+  }
+
+  // Redirect if cart is empty
+  if (items.length === 0) {
+    navigate('/cart');
+    return null;
+  }
+
+  // Calculate totals
+  const subtotal = cartTotal;
+  const taxRate = 0.21; // 21% IVA
+  const taxAmount = subtotal * taxRate;
+  const shippingAmount = subtotal > 50 ? 0 : 5.99; // Free shipping over €50
+  const total = subtotal + taxAmount + shippingAmount;
+
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
-    setFormData(prev => ({
+    setShippingData(prev => ({
       ...prev,
       [name]: value
     }));
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    // TODO: Implement checkout logic
-    alert('¡Pedido realizado con éxito! (Simulado)');
+    setIsLoading(true);
+    setError(null);
+
+    try {
+      await ordersApi.createOrder(shippingData);
+      dispatch(clearCartAsync());
+      navigate('/orders', { state: { orderCreated: true } });
+    } catch (err: unknown) {
+      const error = err as { response?: { data?: { error?: string } } };
+      setError(error.response?.data?.error || 'Error al procesar el pedido');
+    } finally {
+      setIsLoading(false);
+    }
   };
 
-  if (items.length === 0) {
-    return (
-      <div className="text-center py-12">
-        <h2 className="text-2xl font-semibold mb-4">No hay productos en el carrito</h2>
-        <Link to="/products" className="bg-orange-500 hover:bg-orange-600 text-white font-medium py-2 px-4 rounded-md transition-colors">
-          Volver a Productos
-        </Link>
-      </div>
-    );
-  }
-
   return (
-    <div className="max-w-6xl mx-auto">
-      <h1 className="text-3xl font-bold mb-8">Checkout</h1>
-      
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-        {/* Checkout Form */}
-        <div className="bg-white rounded-lg shadow-md p-6">
-          <h2 className="text-xl font-semibold mb-6">Información de Envío</h2>
-          
-          <form onSubmit={handleSubmit} className="space-y-4">
-            <div>
-              <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-1">
-                Email
-              </label>
-              <input
-                type="email"
-                id="email"
-                name="email"
-                value={formData.email}
-                onChange={handleInputChange}
-                required
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
-              />
-            </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div>
-                <label htmlFor="firstName" className="block text-sm font-medium text-gray-700 mb-1">
-                  Nombre
-                </label>
-                <input
-                  type="text"
-                  id="firstName"
-                  name="firstName"
-                  value={formData.firstName}
-                  onChange={handleInputChange}
-                  required
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
-                />
-              </div>
-
-              <div>
-                <label htmlFor="lastName" className="block text-sm font-medium text-gray-700 mb-1">
-                  Apellido
-                </label>
-                <input
-                  type="text"
-                  id="lastName"
-                  name="lastName"
-                  value={formData.lastName}
-                  onChange={handleInputChange}
-                  required
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
-                />
-              </div>
-            </div>
-
-            <div>
-              <label htmlFor="address" className="block text-sm font-medium text-gray-700 mb-1">
-                Dirección
-              </label>
-              <input
-                type="text"
-                id="address"
-                name="address"
-                value={formData.address}
-                onChange={handleInputChange}
-                required
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
-              />
-            </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div>
-                <label htmlFor="city" className="block text-sm font-medium text-gray-700 mb-1">
-                  Ciudad
-                </label>
-                <input
-                  type="text"
-                  id="city"
-                  name="city"
-                  value={formData.city}
-                  onChange={handleInputChange}
-                  required
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
-                />
-              </div>
-
-              <div>
-                <label htmlFor="postalCode" className="block text-sm font-medium text-gray-700 mb-1">
-                  Código Postal
-                </label>
-                <input
-                  type="text"
-                  id="postalCode"
-                  name="postalCode"
-                  value={formData.postalCode}
-                  onChange={handleInputChange}
-                  required
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
-                />
-              </div>
-            </div>
-
-            <div>
-              <label htmlFor="phone" className="block text-sm font-medium text-gray-700 mb-1">
-                Teléfono
-              </label>
-              <input
-                type="tel"
-                id="phone"
-                name="phone"
-                value={formData.phone}
-                onChange={handleInputChange}
-                required
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
-              />
-            </div>
-
-            <button
-              type="submit"
-              className="w-full bg-orange-500 hover:bg-orange-600 text-white font-medium py-3 px-4 rounded-md transition-colors text-lg"
-            >
-              Realizar Pedido - {Number(total).toFixed(2)} €
-            </button>
-          </form>
-        </div>
-
-        {/* Order Summary */}
-        <div className="bg-white rounded-lg shadow-md p-6 h-fit">
-          <h2 className="text-xl font-semibold mb-6">Resumen del Pedido</h2>
-          
-          <div className="space-y-4 mb-6">
-            {items.map((item: CartItem) => (
-              <div key={item.id} className="flex justify-between items-center">
-                <div>
-                  <h4 className="font-medium">{item.product.name}</h4>
-                  <p className="text-sm text-gray-500">Cantidad: {item.quantity}</p>
+    <div className="min-h-screen bg-gray-50 py-8">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <h1 className="text-3xl font-bold text-gray-900 mb-8">Finalizar Compra</h1>
+        
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+          {/* Shipping Form */}
+          <div className="lg:col-span-2">
+            <div className="bg-white rounded-lg shadow-md p-6">
+              <h2 className="text-xl font-semibold text-gray-900 mb-6">Datos de Envío</h2>
+              
+              {error && (
+                <div className="bg-red-50 border border-red-200 text-red-600 px-4 py-3 rounded mb-6">
+                  {error}
                 </div>
-                <span className="font-semibold">
-                  {((Number(item.product.price) * item.quantity).toFixed(2))} €
-                </span>
-              </div>
-            ))}
+              )}
+
+              <form onSubmit={handleSubmit}>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div>
+                    <label htmlFor="shipping_name" className="block text-sm font-medium text-gray-700 mb-2">
+                      Nombre completo *
+                    </label>
+                    <input
+                      type="text"
+                      id="shipping_name"
+                      name="shipping_name"
+                      required
+                      value={shippingData.shipping_name}
+                      onChange={handleInputChange}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
+                      placeholder="Juan Pérez"
+                    />
+                  </div>
+
+                  <div>
+                    <label htmlFor="shipping_email" className="block text-sm font-medium text-gray-700 mb-2">
+                      Email *
+                    </label>
+                    <input
+                      type="email"
+                      id="shipping_email"
+                      name="shipping_email"
+                      required
+                      value={shippingData.shipping_email}
+                      onChange={handleInputChange}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
+                      placeholder="juan@ejemplo.com"
+                    />
+                  </div>
+
+                  <div>
+                    <label htmlFor="shipping_phone" className="block text-sm font-medium text-gray-700 mb-2">
+                      Teléfono
+                    </label>
+                    <input
+                      type="tel"
+                      id="shipping_phone"
+                      name="shipping_phone"
+                      value={shippingData.shipping_phone}
+                      onChange={handleInputChange}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
+                      placeholder="+34 600 000 000"
+                    />
+                  </div>
+
+                  <div className="md:col-span-2">
+                    <label htmlFor="shipping_address" className="block text-sm font-medium text-gray-700 mb-2">
+                      Dirección *
+                    </label>
+                    <input
+                      type="text"
+                      id="shipping_address"
+                      name="shipping_address"
+                      required
+                      value={shippingData.shipping_address}
+                      onChange={handleInputChange}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
+                      placeholder="Calle Principal 123, 1º A"
+                    />
+                  </div>
+
+                  <div>
+                    <label htmlFor="shipping_city" className="block text-sm font-medium text-gray-700 mb-2">
+                      Ciudad *
+                    </label>
+                    <input
+                      type="text"
+                      id="shipping_city"
+                      name="shipping_city"
+                      required
+                      value={shippingData.shipping_city}
+                      onChange={handleInputChange}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
+                      placeholder="Madrid"
+                    />
+                  </div>
+
+                  <div>
+                    <label htmlFor="shipping_state" className="block text-sm font-medium text-gray-700 mb-2">
+                      Provincia *
+                    </label>
+                    <input
+                      type="text"
+                      id="shipping_state"
+                      name="shipping_state"
+                      required
+                      value={shippingData.shipping_state}
+                      onChange={handleInputChange}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
+                      placeholder="Madrid"
+                    />
+                  </div>
+
+                  <div>
+                    <label htmlFor="shipping_postal_code" className="block text-sm font-medium text-gray-700 mb-2">
+                      Código postal *
+                    </label>
+                    <input
+                      type="text"
+                      id="shipping_postal_code"
+                      name="shipping_postal_code"
+                      required
+                      value={shippingData.shipping_postal_code}
+                      onChange={handleInputChange}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
+                      placeholder="28001"
+                    />
+                  </div>
+
+                  <div>
+                    <label htmlFor="shipping_country" className="block text-sm font-medium text-gray-700 mb-2">
+                      País *
+                    </label>
+                    <select
+                      id="shipping_country"
+                      name="shipping_country"
+                      required
+                      value={shippingData.shipping_country}
+                      onChange={handleInputChange}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
+                    >
+                      <option value="España">España</option>
+                      <option value="Portugal">Portugal</option>
+                      <option value="Francia">Francia</option>
+                      <option value="Italia">Italia</option>
+                    </select>
+                  </div>
+
+                  <div className="md:col-span-2">
+                    <label htmlFor="payment_method" className="block text-sm font-medium text-gray-700 mb-2">
+                      Método de pago *
+                    </label>
+                    <select
+                      id="payment_method"
+                      name="payment_method"
+                      required
+                      value={shippingData.payment_method}
+                      onChange={handleInputChange}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
+                    >
+                      <option value="credit_card">Tarjeta de Crédito</option>
+                      <option value="debit_card">Tarjeta de Débito</option>
+                      <option value="paypal">PayPal</option>
+                      <option value="bank_transfer">Transferencia Bancaria</option>
+                    </select>
+                  </div>
+                </div>
+
+                <div className="mt-8">
+                  <button
+                    type="submit"
+                    disabled={isLoading}
+                    className="w-full bg-orange-600 text-white py-3 px-4 rounded-md font-medium hover:bg-orange-700 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    {isLoading ? 'Procesando...' : 'Confirmar Pedido'}
+                  </button>
+                </div>
+              </form>
+            </div>
           </div>
 
-          <div className="border-t pt-4 space-y-2">
-            <div className="flex justify-between">
-              <span>Subtotal:</span>
-              <span>{Number(total).toFixed(2)} €</span>
-            </div>
-            <div className="flex justify-between">
-              <span>Envío:</span>
-              <span>Gratis</span>
-            </div>
-            <div className="flex justify-between">
-              <span>Impuestos:</span>
-              <span>{(Number(total) * 0.1).toFixed(2)} €</span>
-            </div>
-            <div className="border-t pt-2 flex justify-between font-semibold text-lg">
-              <span>Total:</span>
-              <span>{(Number(total) * 1.1).toFixed(2)} €</span>
+          {/* Order Summary */}
+          <div className="lg:col-span-1">
+            <div className="bg-white rounded-lg shadow-md p-6 sticky top-4">
+              <h2 className="text-xl font-semibold text-gray-900 mb-6">Resumen del Pedido</h2>
+              
+              {/* Cart Items */}
+              <div className="space-y-4 mb-6">
+                {items.map((item) => (
+                  <div key={item.id} className="flex items-center space-x-4">
+                    <img
+                      src={item.product.image_url || '/placeholder-product.png'}
+                      alt={item.product.name}
+                      className="w-16 h-16 object-cover rounded-md"
+                    />
+                    <div className="flex-1">
+                      <h3 className="text-sm font-medium text-gray-900">{item.product.name}</h3>
+                      <p className="text-sm text-gray-500">Cantidad: {item.quantity}</p>
+                    </div>
+                    <div className="text-sm font-medium text-gray-900">
+                      €{(item.product.price * item.quantity).toFixed(2)}
+                    </div>
+                  </div>
+                ))}
+              </div>
+
+              {/* Totals */}
+              <div className="border-t border-gray-200 pt-4">
+                <div className="flex justify-between text-sm text-gray-600 mb-2">
+                  <span>Subtotal</span>
+                  <span>€{subtotal.toFixed(2)}</span>
+                </div>
+                <div className="flex justify-between text-sm text-gray-600 mb-2">
+                  <span>IVA (21%)</span>
+                  <span>€{taxAmount.toFixed(2)}</span>
+                </div>
+                <div className="flex justify-between text-sm text-gray-600 mb-4">
+                  <span>Envío</span>
+                  <span>{shippingAmount === 0 ? 'GRATIS' : `€${shippingAmount.toFixed(2)}`}</span>
+                </div>
+                {subtotal > 50 && (
+                  <div className="text-sm text-green-600 mb-4">
+                    🎉 ¡Envío gratuito por compras superiores a €50!
+                  </div>
+                )}
+                <div className="flex justify-between text-lg font-semibold text-gray-900 border-t border-gray-200 pt-4">
+                  <span>Total</span>
+                  <span>€{total.toFixed(2)}</span>
+                </div>
+              </div>
             </div>
           </div>
         </div>
