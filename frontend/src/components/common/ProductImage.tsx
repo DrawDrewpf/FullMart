@@ -9,6 +9,27 @@ interface ProductImageProps {
   size?: 'small' | 'medium' | 'large';
 }
 
+// URLs de ejemplo funcionales para cada categoría
+const getPlaceholderImageByCat = (category: string): string => {
+  const cat = category.toLowerCase();
+  
+  // Usando picsum.photos que funciona mejor que unsplash para placeholders
+  switch (cat) {
+    case 'electronics':
+      return 'https://picsum.photos/400/300?random=1';
+    case 'clothing':
+      return 'https://picsum.photos/400/300?random=2';
+    case 'home':
+      return 'https://picsum.photos/400/300?random=3';
+    case 'sports':
+      return 'https://picsum.photos/400/300?random=4';
+    case 'books':
+      return 'https://picsum.photos/400/300?random=5';
+    default:
+      return 'https://picsum.photos/400/300?random=6';
+  }
+};
+
 const ProductImage: React.FC<ProductImageProps> = ({ 
   src, 
   alt, 
@@ -18,10 +39,29 @@ const ProductImage: React.FC<ProductImageProps> = ({
   size = "medium"
 }) => {
   const [hasError, setHasError] = useState(false);
+  const [imageToShow, setImageToShow] = useState<string>(src || '');
 
   const handleError = () => {
+    console.log('Image failed to load:', src);
     setHasError(true);
+    // Intentar con una imagen placeholder funcional
+    const placeholderImg = getPlaceholderImageByCat(category);
+    setImageToShow(placeholderImg);
   };
+
+  const handleLoad = () => {
+    setHasError(false);
+  };
+
+  // Si no hay src inicial, usar placeholder inmediatamente
+  React.useEffect(() => {
+    if (!src) {
+      const placeholderImg = getPlaceholderImageByCat(category);
+      setImageToShow(placeholderImg);
+    } else {
+      setImageToShow(src);
+    }
+  }, [src, category]);
 
   // Iconos SVG más profesionales por categoría
   const getCategoryIcon = (cat: string) => {
@@ -55,7 +95,7 @@ const ProductImage: React.FC<ProductImageProps> = ({
     }
   };
 
-  if (!src || hasError) {
+  if (!imageToShow || (hasError && !imageToShow.includes('picsum'))) {
     const textSize = size === 'small' ? 'text-xs' : size === 'large' ? 'text-sm' : 'text-xs';
     const padding = size === 'small' ? 'p-2' : 'p-6';
     const spacing = size === 'small' ? 'mb-1' : 'mb-3';
@@ -74,10 +114,11 @@ const ProductImage: React.FC<ProductImageProps> = ({
 
   return (
     <img
-      src={src}
+      src={imageToShow}
       alt={alt}
       className={className}
       onError={handleError}
+      onLoad={handleLoad}
       loading="lazy"
     />
   );

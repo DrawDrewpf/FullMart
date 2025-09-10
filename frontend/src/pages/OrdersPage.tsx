@@ -3,6 +3,7 @@ import { useLocation } from 'react-router-dom';
 import { useAppSelector } from '../hooks/redux';
 import { ordersApi } from '../services/api';
 import type { Order } from '../types';
+import { formatPrice } from '../utils/currency';
 
 const OrdersPage = () => {
   const location = useLocation();
@@ -112,7 +113,7 @@ const OrdersPage = () => {
                     </div>
                     <div className="text-right">
                       <p className="text-lg font-semibold text-gray-900">
-                        €{order.total_amount.toFixed(2)}
+                        {formatPrice(order.total_amount)}
                       </p>
                       <span className={`inline-flex px-2 py-1 text-xs font-medium rounded-full ${
                         order.status === 'pending' ? 'bg-yellow-100 text-yellow-800' :
@@ -148,19 +149,19 @@ const OrdersPage = () => {
                       <div className="text-sm text-gray-600 space-y-1">
                         <div className="flex justify-between">
                           <span>Subtotal:</span>
-                          <span>€{order.subtotal.toFixed(2)}</span>
+                          <span>{formatPrice(order.subtotal)}</span>
                         </div>
                         <div className="flex justify-between">
                           <span>IVA:</span>
-                          <span>€{order.tax_amount.toFixed(2)}</span>
+                          <span>{formatPrice(order.tax_amount)}</span>
                         </div>
                         <div className="flex justify-between">
                           <span>Envío:</span>
-                          <span>{order.shipping_amount === 0 ? 'GRATIS' : `€${order.shipping_amount.toFixed(2)}`}</span>
+                          <span>{order.shipping_amount === 0 ? 'GRATIS' : formatPrice(order.shipping_amount)}</span>
                         </div>
                         <div className="flex justify-between font-semibold text-gray-900 border-t pt-1">
                           <span>Total:</span>
-                          <span>€{order.total_amount.toFixed(2)}</span>
+                          <span>{formatPrice(order.total_amount)}</span>
                         </div>
                       </div>
                     </div>
@@ -180,11 +181,11 @@ const OrdersPage = () => {
                             <div className="flex-1">
                               <h5 className="text-sm font-medium text-gray-900">{item.product_name}</h5>
                               <p className="text-sm text-gray-500">
-                                Cantidad: {item.quantity} × €{item.unit_price.toFixed(2)}
+                                Cantidad: {item.quantity} × {formatPrice(item.unit_price)}
                               </p>
                             </div>
                             <div className="text-sm font-medium text-gray-900">
-                              €{item.total_price.toFixed(2)}
+                              {formatPrice(item.total_price)}
                             </div>
                           </div>
                         ))}

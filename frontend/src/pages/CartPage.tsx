@@ -6,6 +6,7 @@ import type { AppDispatch } from '../store/store';
 import { useAppSelector } from '../hooks/redux';
 import type { CartItem } from '../types';
 import ProductImage from '../components/common/ProductImage';
+import { formatPrice } from '../utils/currency';
 
 const CartPage = () => {
   const dispatch = useDispatch<AppDispatch>();
@@ -118,7 +119,7 @@ const CartPage = () => {
           <div className="space-y-2 mb-4">
             <div className="flex justify-between">
               <span>Subtotal:</span>
-              <span>{Number(total).toFixed(2)} €</span>
+              <span>{formatPrice(total)}</span>
             </div>
             <div className="flex justify-between">
               <span>Envío:</span>
@@ -126,7 +127,7 @@ const CartPage = () => {
             </div>
             <div className="border-t pt-2 flex justify-between font-semibold text-lg">
               <span>Total:</span>
-              <span>{Number(total).toFixed(2)} €</span>
+              <span>{formatPrice(total)}</span>
             </div>
           </div>
 

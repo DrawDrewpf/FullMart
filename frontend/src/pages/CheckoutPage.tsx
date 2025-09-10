@@ -4,6 +4,7 @@ import { useAppSelector, useAppDispatch } from '../hooks/redux';
 import { clearCartAsync } from '../store/slices/cartSlice';
 import { ordersApi } from '../services/api';
 import type { CreateOrderRequest } from '../types';
+import { formatPrice } from '../utils/currency';
 
 const CheckoutPage = () => {
   const navigate = useNavigate();
@@ -270,7 +271,7 @@ const CheckoutPage = () => {
                       <p className="text-sm text-gray-500">Cantidad: {item.quantity}</p>
                     </div>
                     <div className="text-sm font-medium text-gray-900">
-                      €{(item.product.price * item.quantity).toFixed(2)}
+                      {formatPrice(item.product.price * item.quantity)}
                     </div>
                   </div>
                 ))}
@@ -280,15 +281,15 @@ const CheckoutPage = () => {
               <div className="border-t border-gray-200 pt-4">
                 <div className="flex justify-between text-sm text-gray-600 mb-2">
                   <span>Subtotal</span>
-                  <span>€{subtotal.toFixed(2)}</span>
+                  <span>{formatPrice(subtotal)}</span>
                 </div>
                 <div className="flex justify-between text-sm text-gray-600 mb-2">
                   <span>IVA (21%)</span>
-                  <span>€{taxAmount.toFixed(2)}</span>
+                  <span>{formatPrice(taxAmount)}</span>
                 </div>
                 <div className="flex justify-between text-sm text-gray-600 mb-4">
                   <span>Envío</span>
-                  <span>{shippingAmount === 0 ? 'GRATIS' : `€${shippingAmount.toFixed(2)}`}</span>
+                  <span>{shippingAmount === 0 ? 'GRATIS' : formatPrice(shippingAmount)}</span>
                 </div>
                 {subtotal > 50 && (
                   <div className="text-sm text-green-600 mb-4">
@@ -297,7 +298,7 @@ const CheckoutPage = () => {
                 )}
                 <div className="flex justify-between text-lg font-semibold text-gray-900 border-t border-gray-200 pt-4">
                   <span>Total</span>
-                  <span>€{total.toFixed(2)}</span>
+                  <span>{formatPrice(total)}</span>
                 </div>
               </div>
             </div>

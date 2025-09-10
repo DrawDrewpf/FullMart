@@ -1,4 +1,4 @@
-import { useParams, Link, Navigate } from 'react-router-dom';
+import { useParams, Link } from 'react-router-dom';
 import { useState, useEffect } from 'react';
 import { useDispatch } from 'react-redux';
 import { addToCartAsync } from '../store/slices/cartSlice';
@@ -6,25 +6,93 @@ import { fetchProductById } from '../store/slices/productsSlice';
 import type { AppDispatch } from '../store/store';
 import { useAppSelector } from '../hooks/redux';
 import ProductImage from '../components/common/ProductImage';
+import { formatPrice, formatCartTotal } from '../utils/currency';
 
 const ProductDetailPage = () => {
   const { id } = useParams<{ id: string }>();
   const dispatch = useDispatch<AppDispatch>();
   const [quantity, setQuantity] = useState(1);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
-  const { products } = useAppSelector((state) => state.products);
+  const { products, selectedProduct } = useAppSelector((state) => state.products);
   const { isAuthenticated } = useAppSelector((state) => state.auth);
-  const product = products.find(p => p.id === Number(id));
+  
+  // Intentar encontrar el producto en el estado primero, luego en selectedProduct
+  const product = products.find(p => p.id === Number(id)) || selectedProduct;
 
   useEffect(() => {
-    if (id && !product) {
-      dispatch(fetchProductById(Number(id)));
+    if (id) {
+      setLoading(true);
+      setError(null);
+      
+      // Si no tenemos el producto, lo buscamos
+      if (!product) {
+        dispatch(fetchProductById(Number(id)))
+          .unwrap()
+          .then(() => {
+            setLoading(false);
+          })
+          .catch((err) => {
+            setError(err);
+            setLoading(false);
+          });
+      } else {
+        setLoading(false);
+      }
     }
-  }, [id, product, dispatch]);
+  }, [id, dispatch, product]);
 
-  // Si no existe el producto, redirigir a productos
+  // Mostrar loading
+  if (loading) {
+    return (
+      <div className="max-w-6xl mx-auto">
+        <div className="animate-pulse">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+            <div className="bg-gray-200 rounded-lg h-96"></div>
+            <div className="space-y-4">
+              <div className="h-8 bg-gray-200 rounded w-3/4"></div>
+              <div className="h-4 bg-gray-200 rounded w-1/2"></div>
+              <div className="h-6 bg-gray-200 rounded w-1/4"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // Mostrar error
+  if (error) {
+    return (
+      <div className="max-w-6xl mx-auto text-center py-16">
+        <div className="text-red-500 text-6xl mb-4">⚠️</div>
+        <h2 className="text-2xl font-bold text-gray-900 mb-4">Error al cargar producto</h2>
+        <p className="text-gray-600 mb-6">{error}</p>
+        <Link 
+          to="/products"
+          className="bg-orange-600 text-white px-6 py-3 rounded-md hover:bg-orange-700 transition-colors font-medium"
+        >
+          Volver a productos
+        </Link>
+      </div>
+    );
+  }
+
+  // Si no existe el producto después de cargar, mostrar mensaje
   if (!product) {
-    return <Navigate to="/products" replace />;
+    return (
+      <div className="max-w-6xl mx-auto text-center py-16">
+        <div className="text-gray-400 text-6xl mb-4">📦</div>
+        <h2 className="text-2xl font-bold text-gray-900 mb-4">Producto no encontrado</h2>
+        <p className="text-gray-600 mb-6">El producto que buscas no existe o no está disponible.</p>
+        <Link 
+          to="/products"
+          className="bg-orange-600 text-white px-6 py-3 rounded-md hover:bg-orange-700 transition-colors font-medium"
+        >
+          Ver todos los productos
+        </Link>
+      </div>
+    );
   }
 
   const handleAddToCart = () => {
@@ -88,7 +156,7 @@ const ProductDetailPage = () => {
           {/* Precio */}
           <div className="border-t border-b py-4">
             <span className="text-4xl font-bold text-orange-600">
-              {product.price} €
+              {formatPrice(product.price)}
             </span>
           </div>
 
@@ -127,7 +195,7 @@ const ProductDetailPage = () => {
                 disabled={product.stock_quantity === 0}
                 className="w-full bg-orange-500 hover:bg-orange-600 disabled:bg-gray-300 text-white font-medium py-3 px-6 rounded-lg transition-colors disabled:cursor-not-allowed"
               >
-                {product.stock_quantity === 0 ? 'Sin Stock' : `Agregar al Carrito - ${((Number(product.price) * quantity).toFixed(2))} €`}
+                {product.stock_quantity === 0 ? 'Sin Stock' : `Agregar al Carrito - ${formatCartTotal(Number(product.price) * quantity)}`}
               </button>
               
               <Link 
