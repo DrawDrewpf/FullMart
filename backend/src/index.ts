@@ -11,6 +11,7 @@ import { errorHandler } from './middleware/errorHandler';
 import authRoutes from './routes/auth.routes';
 import productRoutes from './routes/product.routes';
 import cartRoutes from './routes/cart.routes';
+import orderRoutes, { setDatabasePool } from './routes/order.routes';
 
 // Load environment variables
 dotenv.config(); // Restart trigger
@@ -43,6 +44,7 @@ app.use(express.urlencoded({ extended: true }));
 app.use('/api/auth', authRoutes);
 app.use('/api/products', productRoutes);
 app.use('/api/cart', cartRoutes);
+app.use('/api/orders', orderRoutes);
 
 // Health check endpoint
 app.get('/api/health', (req, res) => {
@@ -68,6 +70,11 @@ app.use(errorHandler);
 const startServer = async () => {
   try {
     await connectDB();
+    
+    // Configure database connection for order routes
+    const { pool } = await import('./config/database');
+    setDatabasePool(pool);
+    
     // await initializeTables(); // Commented out - tables already exist
     
     app.listen(PORT, () => {
@@ -75,6 +82,7 @@ const startServer = async () => {
       console.log(`📍 Health check available at http://localhost:${PORT}/api/health`);
       console.log(`📊 Environment: ${process.env.NODE_ENV || 'development'}`);
       console.log(`🌐 Frontend URL: ${process.env.FRONTEND_URL || 'http://localhost:5173'}`);
+      console.log(`📦 Orders API available at http://localhost:${PORT}/api/orders`);
     });
   } catch (error) {
     console.error('❌ Failed to start server:', error);
