@@ -4,6 +4,7 @@ import { useEffect } from 'react';
 import { useDispatch } from 'react-redux';
 import { store } from './store/store';
 import { getCurrentUser } from './store/slices/authSlice';
+import { fetchCart } from './store/slices/cartSlice';
 import type { AppDispatch } from './store/store';
 import Header from './components/common/Header';
 import Footer from './components/common/Footer';
@@ -23,7 +24,9 @@ function AppContent() {
     // Verificar si hay un token en localStorage y restaurar la sesión
     const token = localStorage.getItem('token');
     if (token) {
+      // Cargar usuario y carrito en paralelo
       dispatch(getCurrentUser());
+      dispatch(fetchCart());
     }
   }, [dispatch]);
 

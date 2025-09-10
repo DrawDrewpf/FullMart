@@ -23,10 +23,12 @@ export interface User {
 
 export interface CartItem {
   id: number;
-  user_id: number;
-  product_id: number;
+  userId: number;
+  productId: number;
   quantity: number;
   product: Product;
+  createdAt: string;
+  updatedAt: string;
 }
 
 export interface LoginCredentials {

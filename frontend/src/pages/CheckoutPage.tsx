@@ -1,7 +1,7 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAppSelector, useAppDispatch } from '../hooks/redux';
-import { clearCartAsync } from '../store/slices/cartSlice';
+import { clearCartAsync, fetchCart } from '../store/slices/cartSlice';
 import { ordersApi } from '../services/api';
 import type { CreateOrderRequest } from '../types';
 import { formatPrice } from '../utils/currency';
@@ -9,11 +9,12 @@ import { formatPrice } from '../utils/currency';
 const CheckoutPage = () => {
   const navigate = useNavigate();
   const dispatch = useAppDispatch();
-  const { items, total: cartTotal } = useAppSelector((state) => state.cart);
+  const { items, total: cartTotal, loading: cartLoading } = useAppSelector((state) => state.cart);
   const { isAuthenticated } = useAppSelector((state) => state.auth);
   
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [cartLoadAttempted, setCartLoadAttempted] = useState(false);
   const [shippingData, setShippingData] = useState<CreateOrderRequest>({
     shipping_name: '',
     shipping_email: '',
@@ -26,16 +27,67 @@ const CheckoutPage = () => {
     payment_method: 'credit_card'
   });
 
+  // Load cart on component mount
+  useEffect(() => {
+    if (isAuthenticated && !cartLoadAttempted) {
+      console.log('CheckoutPage: Loading cart...');
+      dispatch(fetchCart()).finally(() => {
+        setCartLoadAttempted(true);
+      });
+    }
+  }, [dispatch, isAuthenticated, cartLoadAttempted]);
+
+  // Debug logging
+  useEffect(() => {
+    console.log('CheckoutPage State:', {
+      isAuthenticated,
+      cartLoadAttempted,
+      cartLoading,
+      itemsLength: items.length,
+      cartTotal,
+      items: items
+    });
+    console.log('🔍 CheckoutPage items details:', items);
+    console.log('🔍 items.length === 0?', items.length === 0);
+    console.log('🔍 Array.isArray(items)?', Array.isArray(items));
+  }, [isAuthenticated, cartLoadAttempted, cartLoading, items, cartTotal]);
+
   // Redirect if not authenticated
   if (!isAuthenticated) {
     navigate('/login');
     return null;
   }
 
-  // Redirect if cart is empty
+  // Show loading while cart is being loaded
+  if (!cartLoadAttempted || cartLoading) {
+    return (
+      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-orange-600 mx-auto mb-4"></div>
+          <p className="text-gray-600">Cargando carrito...</p>
+        </div>
+      </div>
+    );
+  }
+
+  // Show empty cart message if cart is empty after loading
+  console.log('🚨 About to check if cart is empty. items.length:', items.length, 'items:', items);
   if (items.length === 0) {
-    navigate('/cart');
-    return null;
+    console.log('🚨 Rendering empty cart message!');
+    return (
+      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <div className="text-center">
+          <h2 className="text-2xl font-bold text-gray-900 mb-4">Tu carrito está vacío</h2>
+          <p className="text-gray-600 mb-6">Agrega algunos productos antes de proceder al checkout.</p>
+          <button
+            onClick={() => navigate('/products')}
+            className="bg-orange-600 text-white px-6 py-3 rounded-md hover:bg-orange-700 transition-colors"
+          >
+            Ver Productos
+          </button>
+        </div>
+      </div>
+    );
   }
 
   // Calculate totals
@@ -58,12 +110,15 @@ const CheckoutPage = () => {
     setIsLoading(true);
     setError(null);
 
+    console.log('🚀 Attempting to create order with data:', shippingData);
+
     try {
       await ordersApi.createOrder(shippingData);
       dispatch(clearCartAsync());
       navigate('/orders', { state: { orderCreated: true } });
     } catch (err: unknown) {
       const error = err as { response?: { data?: { error?: string } } };
+      console.error('❌ Order creation failed:', error);
       setError(error.response?.data?.error || 'Error al procesar el pedido');
     } finally {
       setIsLoading(false);

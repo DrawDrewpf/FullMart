@@ -299,7 +299,7 @@ export interface ApiError {
 
 // JWT Payload
 export interface JwtPayload {
-  userId: number;
+  id: number;
   email: string;
   role: UserRole;
   iat?: number;

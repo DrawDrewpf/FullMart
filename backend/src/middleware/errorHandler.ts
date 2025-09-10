@@ -46,7 +46,7 @@ export const errorHandler = (
     path: req.path,
     method: req.method,
     body: req.body,
-    user: req.user?.userId,
+    user: req.user?.id,
   });
 
   const response: ApiError = {
