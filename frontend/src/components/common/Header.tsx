@@ -97,6 +97,42 @@ const Header = () => {
                     >
                       Mis Pedidos
                     </Link>
+                    {user?.role === 'admin' && (
+                      <>
+                        <hr className="my-1" />
+                        <div className="px-3 py-1">
+                          <p className="text-xs font-medium text-gray-500 uppercase tracking-wide">Administración</p>
+                        </div>
+                        <Link 
+                          to="/admin/dashboard"
+                          className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 transition-colors"
+                          onClick={() => setShowUserMenu(false)}
+                        >
+                          📊 Dashboard
+                        </Link>
+                        <Link 
+                          to="/admin/products"
+                          className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 transition-colors"
+                          onClick={() => setShowUserMenu(false)}
+                        >
+                          📦 Productos
+                        </Link>
+                        <Link 
+                          to="/admin/orders"
+                          className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 transition-colors"
+                          onClick={() => setShowUserMenu(false)}
+                        >
+                          🛒 Órdenes
+                        </Link>
+                        <Link 
+                          to="/admin/users"
+                          className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 transition-colors"
+                          onClick={() => setShowUserMenu(false)}
+                        >
+                          👥 Usuarios
+                        </Link>
+                      </>
+                    )}
                     <hr className="my-1" />
                     <button 
                       onClick={handleLogout}

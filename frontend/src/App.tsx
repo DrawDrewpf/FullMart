@@ -8,6 +8,7 @@ import { fetchCart } from './store/slices/cartSlice';
 import type { AppDispatch } from './store/store';
 import Header from './components/common/Header';
 import Footer from './components/common/Footer';
+import ProtectedRoute from './components/common/ProtectedRoute';
 import HomePage from './pages/HomePage';
 import ProductsPage from './pages/ProductsPage';
 import ProductDetailPage from './pages/ProductDetailPage';
@@ -17,6 +18,10 @@ import OrdersPage from './pages/OrdersPage';
 import LoginPage from './pages/LoginPage';
 import RegisterPage from './pages/RegisterPage';
 import ProfilePage from './pages/ProfilePage';
+import AdminDashboard from './pages/AdminDashboard';
+import AdminUsers from './pages/AdminUsers';
+import AdminOrders from './pages/AdminOrders';
+import AdminProducts from './pages/AdminProducts';
 
 function AppContent() {
   const dispatch = useDispatch<AppDispatch>();
@@ -45,6 +50,28 @@ function AppContent() {
           <Route path="/profile" element={<ProfilePage />} />
           <Route path="/login" element={<LoginPage />} />
           <Route path="/register" element={<RegisterPage />} />
+          
+          {/* Admin Routes */}
+          <Route path="/admin/dashboard" element={
+            <ProtectedRoute requireAdmin>
+              <AdminDashboard />
+            </ProtectedRoute>
+          } />
+          <Route path="/admin/users" element={
+            <ProtectedRoute requireAdmin>
+              <AdminUsers />
+            </ProtectedRoute>
+          } />
+          <Route path="/admin/orders" element={
+            <ProtectedRoute requireAdmin>
+              <AdminOrders />
+            </ProtectedRoute>
+          } />
+          <Route path="/admin/products" element={
+            <ProtectedRoute requireAdmin>
+              <AdminProducts />
+            </ProtectedRoute>
+          } />
         </Routes>
       </main>
       <Footer />
