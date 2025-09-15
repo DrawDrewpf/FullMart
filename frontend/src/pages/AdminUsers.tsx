@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
+import { adminApi } from '../services/api';
 import { 
   UsersIcon,
   MagnifyingGlassIcon,
@@ -23,7 +24,7 @@ interface UsersPagination {
 }
 
 interface UsersResponse {
-  users: User[];
+  data: User[];
   pagination: UsersPagination;
 }
 
@@ -48,26 +49,20 @@ const AdminUsers: React.FC = () => {
   const fetchUsers = useCallback(async () => {
     try {
       setLoading(true);
-      const token = localStorage.getItem('token');
-      const queryParams = new URLSearchParams({
-        page: currentPage.toString(),
-        limit: '20',
-        ...(debouncedSearchTerm && { search: debouncedSearchTerm })
-      });
-
-      const response = await fetch(`/api/admin/users?${queryParams}`, {
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json',
-        },
-      });
-
-      if (!response.ok) {
-        throw new Error('Failed to fetch users');
+      const params: { page: number; limit: number; search?: string } = {
+        page: currentPage,
+        limit: 20,
+      };
+      
+      if (debouncedSearchTerm) {
+        params.search = debouncedSearchTerm;
       }
 
-      const result = await response.json();
-      setData(result.data);
+      const response = await adminApi.getUsers(params);
+      setData({
+        data: response.data.data.users,
+        pagination: response.data.data.pagination
+      });
     } catch (err) {
       setError(err instanceof Error ? err.message : 'An error occurred');
     } finally {
@@ -241,7 +236,7 @@ const AdminUsers: React.FC = () => {
               </tr>
             </thead>
             <tbody className="bg-white divide-y divide-gray-200">
-              {data?.users.map((user) => (
+              {data?.data && data.data.length > 0 ? data.data.map((user: User) => (
                 <tr key={user.id} className="hover:bg-gray-50">
                   <td className="px-6 py-4 whitespace-nowrap">
                     <div className="flex items-center">
@@ -273,7 +268,13 @@ const AdminUsers: React.FC = () => {
                     {formatDate(user.updated_at)}
                   </td>
                 </tr>
-              ))}
+              )) : (
+                <tr>
+                  <td colSpan={5} className="px-6 py-4 text-center text-gray-500">
+                    Cargando usuarios...
+                  </td>
+                </tr>
+              )}
             </tbody>
           </table>
         </div>
@@ -283,7 +284,7 @@ const AdminUsers: React.FC = () => {
       </div>
 
       {/* Empty State */}
-      {data?.users.length === 0 && (
+      {data?.data.length === 0 && (
         <div className="text-center py-12">
           <UsersIcon className="mx-auto h-12 w-12 text-gray-400" />
           <h3 className="mt-2 text-sm font-medium text-gray-900">No se encontraron usuarios</h3>

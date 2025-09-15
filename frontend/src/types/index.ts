@@ -117,3 +117,107 @@ export interface ShippingFormData {
   country: string;
   paymentMethod: PaymentMethod;
 }
+
+// Admin types
+export interface AdminDashboardStats {
+  totalUsers: number;
+  totalProducts: number;
+  totalOrders: number;
+  totalRevenue: number;
+}
+
+export interface AdminRecentOrder {
+  id: number;
+  order_number: string;
+  total_amount: number;
+  status: string;
+  created_at: string;
+  user_email: string;
+  user_name: string;
+}
+
+export interface AdminMonthlyRevenue {
+  month: string;
+  revenue: number;
+  orders_count: number;
+}
+
+export interface AdminTopProduct {
+  id: number;
+  name: string;
+  price: number;
+  image_url: string;
+  total_sold: number;
+  total_revenue: number;
+}
+
+export interface AdminDashboardData {
+  stats: AdminDashboardStats;
+  recentOrders: AdminRecentOrder[];
+  monthlyRevenue: AdminMonthlyRevenue[];
+  topProducts: AdminTopProduct[];
+}
+
+export interface AdminUser {
+  id: number;
+  name: string;
+  email: string;
+  role: string;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface AdminOrder {
+  id: number;
+  order_number: string;
+  status: string;
+  total_amount: number;
+  created_at: string;
+  shipping_name: string;
+  shipping_email: string;
+  shipping_address: string;
+  shipping_city: string;
+  user_name: string;
+  user_email: string;
+}
+
+export interface PaginatedResponse<T> {
+  data: T[];
+  pagination: {
+    page: number;
+    limit: number;
+    total: number;
+    pages: number;
+  };
+}
+
+// Admin API response structures
+export interface AdminProductsResponse {
+  products: Product[];
+  pagination: {
+    page: number;
+    limit: number;
+    total: number;
+    pages: number;
+  };
+}
+
+export interface AdminUsersResponse {
+  users: AdminUser[];
+  pagination: {
+    page: number;
+    limit: number;
+    total: number;
+    pages: number;
+  };
+}
+
+export interface AdminOrdersResponse {
+  orders: AdminOrder[];
+  pagination: {
+    page: number;
+    limit: number;
+    total: number;
+    pages: number;
+  };
+}

@@ -8,7 +8,13 @@ import type {
   AuthResponse, 
   ApiResponse,
   Order,
-  CreateOrderRequest
+  CreateOrderRequest,
+  AdminDashboardData,
+  AdminUser,
+  AdminOrder,
+  AdminProductsResponse,
+  AdminUsersResponse,
+  AdminOrdersResponse
 } from '../types';
 
 // Configuración base de la API
@@ -90,6 +96,44 @@ export const ordersApi = {
     
   getOrder: (orderId: number) =>
     api.get<ApiResponse<Order>>(`/orders/${orderId}`),
+};
+
+// Admin API
+export const adminApi = {
+  // Dashboard
+  getDashboard: () =>
+    api.get<ApiResponse<AdminDashboardData>>('/admin/dashboard'),
+  
+  // Categories
+  getCategories: () =>
+    api.get<ApiResponse<string[]>>('/admin/categories'),
+  
+  // Users
+  getUsers: (params?: { page?: number; limit?: number; search?: string }) =>
+    api.get<ApiResponse<AdminUsersResponse>>('/admin/users', { params }),
+  
+  // Orders
+  getOrders: (params?: { page?: number; limit?: number; status?: string }) =>
+    api.get<ApiResponse<AdminOrdersResponse>>('/admin/orders', { params }),
+  
+  updateOrderStatus: (orderId: number, status: string) =>
+    api.put<ApiResponse<AdminOrder>>(`/admin/orders/${orderId}/status`, { status }),
+  
+  // Products
+  getProducts: (params?: { page?: number; limit?: number; search?: string; category?: string }) =>
+    api.get<ApiResponse<AdminProductsResponse>>('/admin/products', { params }),
+  
+  getProduct: (id: number) =>
+    api.get<ApiResponse<Product>>(`/admin/products/${id}`),
+  
+  createProduct: (productData: Omit<Product, 'id' | 'created_at' | 'updated_at'>) =>
+    api.post<ApiResponse<Product>>('/admin/products', productData),
+  
+  updateProduct: (id: number, productData: Omit<Product, 'id' | 'created_at' | 'updated_at'>) =>
+    api.put<ApiResponse<Product>>(`/admin/products/${id}`, productData),
+  
+  deleteProduct: (id: number) =>
+    api.delete<ApiResponse<void>>(`/admin/products/${id}`),
 };
 
 export default api;

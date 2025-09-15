@@ -300,4 +300,20 @@ router.get('/filters/categories', async (req: Request, res: Response, next: Next
   }
 });
 
+// GET /api/products/categories - Get all available product categories (public)
+router.get('/categories', async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const result = await pool.query('SELECT DISTINCT category FROM products WHERE is_active = true ORDER BY category');
+    
+    const response: ApiResponse<string[]> = {
+      success: true,
+      data: result.rows.map(row => row.category)
+    };
+
+    res.json(response);
+  } catch (error) {
+    next(error);
+  }
+});
+
 export default router;

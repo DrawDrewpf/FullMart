@@ -1,5 +1,8 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { formatPrice } from '../utils/currency';
+import { adminApi } from '../services/api';
+import ProductModal from '../components/admin/ProductModal';
+import DeleteConfirmModal from '../components/admin/DeleteConfirmModal';
 import { 
   CubeIcon,
   MagnifyingGlassIcon,
@@ -8,7 +11,8 @@ import {
   PlusIcon,
   PencilIcon,
   EyeIcon,
-  EyeSlashIcon
+  EyeSlashIcon,
+  TrashIcon
 } from '@heroicons/react/24/outline';
 
 interface Product {
@@ -32,7 +36,7 @@ interface ProductsPagination {
 }
 
 interface ProductsResponse {
-  products: Product[];
+  data: Product[];
   pagination: ProductsPagination;
 }
 
@@ -44,18 +48,41 @@ const AdminProducts: React.FC = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const [categoryFilter, setCategoryFilter] = useState('all');
   const [debouncedSearchTerm, setDebouncedSearchTerm] = useState('');
+  const [categories, setCategories] = useState<string[]>([]);
+  
+  // Modal states
+  const [productModal, setProductModal] = useState<{
+    isOpen: boolean;
+    mode: 'view' | 'edit' | 'create';
+    productId?: number;
+  }>({
+    isOpen: false,
+    mode: 'create'
+  });
+  
+  const [deleteModal, setDeleteModal] = useState<{
+    isOpen: boolean;
+    productId?: number;
+    productName?: string;
+    loading: boolean;
+  }>({
+    isOpen: false,
+    loading: false
+  });
 
-  // Categories - in a real app, these would come from the API
-  const categories = [
-    'Electronics',
-    'Clothing',
-    'Home & Garden',
-    'Sports',
-    'Books',
-    'Toys',
-    'Automotive',
-    'Health & Beauty'
-  ];
+  // Fetch categories from backend
+  const fetchCategories = useCallback(async () => {
+    try {
+      const response = await adminApi.getCategories();
+      setCategories(response.data.data);
+    } catch (err) {
+      console.error('Failed to fetch categories:', err);
+    }
+  }, []);
+
+  useEffect(() => {
+    fetchCategories();
+  }, [fetchCategories]);
 
   // Debounce search term
   useEffect(() => {
@@ -70,27 +97,29 @@ const AdminProducts: React.FC = () => {
   const fetchProducts = useCallback(async () => {
     try {
       setLoading(true);
-      const token = localStorage.getItem('token');
-      const queryParams = new URLSearchParams({
-        page: currentPage.toString(),
-        limit: '20',
-        ...(debouncedSearchTerm && { search: debouncedSearchTerm }),
-        ...(categoryFilter !== 'all' && { category: categoryFilter })
-      });
-
-      const response = await fetch(`/api/admin/products?${queryParams}`, {
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json',
-        },
-      });
-
-      if (!response.ok) {
-        throw new Error('Failed to fetch products');
+      const params: { page: number; limit: number; search?: string; category?: string } = {
+        page: currentPage,
+        limit: 20,
+      };
+      
+      if (debouncedSearchTerm) {
+        params.search = debouncedSearchTerm;
+      }
+      
+      if (categoryFilter !== 'all') {
+        params.category = categoryFilter;
       }
 
-      const result = await response.json();
-      setData(result.data);
+      const response = await adminApi.getProducts(params);
+      
+      // Debug: Ver qué estructura devuelve el backend
+      console.log('Admin Products Response:', response.data);
+      
+      // El backend devuelve { success: true, data: { products: [...], pagination: {...} } }
+      setData({
+        data: response.data.data.products,
+        pagination: response.data.data.pagination
+      });
     } catch (err) {
       setError(err instanceof Error ? err.message : 'An error occurred');
     } finally {
@@ -118,12 +147,16 @@ const AdminProducts: React.FC = () => {
     const colors: Record<string, string> = {
       'Electronics': 'bg-blue-100 text-blue-800',
       'Clothing': 'bg-purple-100 text-purple-800',
-      'Home & Garden': 'bg-green-100 text-green-800',
+      'Home': 'bg-green-100 text-green-800',
+      'Garden': 'bg-green-100 text-green-800',
       'Sports': 'bg-orange-100 text-orange-800',
       'Books': 'bg-yellow-100 text-yellow-800',
       'Toys': 'bg-pink-100 text-pink-800',
       'Automotive': 'bg-red-100 text-red-800',
-      'Health & Beauty': 'bg-indigo-100 text-indigo-800',
+      'Health': 'bg-indigo-100 text-indigo-800',
+      'Beauty': 'bg-purple-100 text-purple-800',
+      'Food': 'bg-green-100 text-green-800',
+      'Music': 'bg-blue-100 text-blue-800',
     };
     return colors[category] || 'bg-gray-100 text-gray-800';
   };
@@ -141,6 +174,59 @@ const AdminProducts: React.FC = () => {
   const handleCategoryFilterChange = (category: string) => {
     setCategoryFilter(category);
     setCurrentPage(1);
+  };
+
+  // Modal handlers
+  const openProductModal = (mode: 'view' | 'edit' | 'create', productId?: number) => {
+    setProductModal({
+      isOpen: true,
+      mode,
+      productId
+    });
+  };
+
+  const closeProductModal = () => {
+    setProductModal({
+      isOpen: false,
+      mode: 'create'
+    });
+  };
+
+  const openDeleteModal = (productId: number, productName: string) => {
+    setDeleteModal({
+      isOpen: true,
+      productId,
+      productName,
+      loading: false
+    });
+  };
+
+  const closeDeleteModal = () => {
+    setDeleteModal({
+      isOpen: false,
+      loading: false
+    });
+  };
+
+  const handleDeleteProduct = async () => {
+    if (!deleteModal.productId) return;
+
+    setDeleteModal(prev => ({ ...prev, loading: true }));
+    
+    try {
+      await adminApi.deleteProduct(deleteModal.productId);
+      closeDeleteModal();
+      fetchProducts(); // Refresh the list
+    } catch (err) {
+      console.error('Failed to delete product:', err);
+      // Could add a toast notification here
+    } finally {
+      setDeleteModal(prev => ({ ...prev, loading: false }));
+    }
+  };
+
+  const handleProductSuccess = () => {
+    fetchProducts(); // Refresh the list after create/edit
   };
 
   const renderPagination = () => {
@@ -246,7 +332,10 @@ const AdminProducts: React.FC = () => {
             <CubeIcon className="h-8 w-8 text-blue-600 mr-3" />
             <h1 className="text-3xl font-bold text-gray-900">Gestión de Productos</h1>
           </div>
-          <button className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+          <button 
+            onClick={() => openProductModal('create')}
+            className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+          >
             <PlusIcon className="h-5 w-5 mr-2" />
             Nuevo Producto
           </button>
@@ -311,7 +400,7 @@ const AdminProducts: React.FC = () => {
               </tr>
             </thead>
             <tbody className="bg-white divide-y divide-gray-200">
-              {data?.products.map((product) => {
+              {data?.data && data.data.length > 0 ? data.data.map((product: Product) => {
                 const stockStatus = getStockStatus(product.stock_quantity);
                 return (
                   <tr key={product.id} className="hover:bg-gray-50">
@@ -364,16 +453,39 @@ const AdminProducts: React.FC = () => {
                       {formatDate(product.created_at)}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                      <button className="text-blue-600 hover:text-blue-900 mr-3">
-                        <PencilIcon className="h-4 w-4" />
-                      </button>
-                      <button className="text-green-600 hover:text-green-900">
-                        Ver
-                      </button>
+                      <div className="flex items-center space-x-2">
+                        <button
+                          onClick={() => openProductModal('view', product.id)}
+                          className="text-blue-600 hover:text-blue-900 p-1 rounded"
+                          title="Ver producto"
+                        >
+                          <EyeIcon className="h-4 w-4" />
+                        </button>
+                        <button
+                          onClick={() => openProductModal('edit', product.id)}
+                          className="text-green-600 hover:text-green-900 p-1 rounded"
+                          title="Editar producto"
+                        >
+                          <PencilIcon className="h-4 w-4" />
+                        </button>
+                        <button
+                          onClick={() => openDeleteModal(product.id, product.name)}
+                          className="text-red-600 hover:text-red-900 p-1 rounded"
+                          title="Eliminar producto"
+                        >
+                          <TrashIcon className="h-4 w-4" />
+                        </button>
+                      </div>
                     </td>
                   </tr>
                 );
-              })}
+              }) : (
+                <tr>
+                  <td colSpan={7} className="px-6 py-4 text-center text-gray-500">
+                    Cargando productos...
+                  </td>
+                </tr>
+              )}
             </tbody>
           </table>
         </div>
@@ -383,7 +495,7 @@ const AdminProducts: React.FC = () => {
       </div>
 
       {/* Empty State */}
-      {data?.products.length === 0 && (
+      {data?.data.length === 0 && (
         <div className="text-center py-12">
           <CubeIcon className="mx-auto h-12 w-12 text-gray-400" />
           <h3 className="mt-2 text-sm font-medium text-gray-900">No se encontraron productos</h3>
@@ -394,6 +506,24 @@ const AdminProducts: React.FC = () => {
           </p>
         </div>
       )}
+
+      {/* Product Modal */}
+      <ProductModal
+        isOpen={productModal.isOpen}
+        onClose={closeProductModal}
+        productId={productModal.productId}
+        mode={productModal.mode}
+        onSuccess={handleProductSuccess}
+      />
+
+      {/* Delete Confirmation Modal */}
+      <DeleteConfirmModal
+        isOpen={deleteModal.isOpen}
+        onClose={closeDeleteModal}
+        onConfirm={handleDeleteProduct}
+        productName={deleteModal.productName || ''}
+        loading={deleteModal.loading}
+      />
     </div>
   );
 };

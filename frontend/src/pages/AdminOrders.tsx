@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { formatPrice } from '../utils/currency';
+import { adminApi } from '../services/api';
 import { 
   ShoppingBagIcon,
   ChevronLeftIcon,
@@ -32,7 +33,7 @@ interface OrdersPagination {
 }
 
 interface OrdersResponse {
-  orders: Order[];
+  data: Order[];
   pagination: OrdersPagination;
 }
 
@@ -48,26 +49,20 @@ const AdminOrders: React.FC = () => {
   const fetchOrders = useCallback(async () => {
     try {
       setLoading(true);
-      const token = localStorage.getItem('token');
-      const queryParams = new URLSearchParams({
-        page: currentPage.toString(),
-        limit: '20',
-        ...(statusFilter !== 'all' && { status: statusFilter })
-      });
-
-      const response = await fetch(`/api/admin/orders?${queryParams}`, {
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json',
-        },
-      });
-
-      if (!response.ok) {
-        throw new Error('Failed to fetch orders');
+      const params: { page: number; limit: number; status?: string } = {
+        page: currentPage,
+        limit: 20,
+      };
+      
+      if (statusFilter !== 'all') {
+        params.status = statusFilter;
       }
 
-      const result = await response.json();
-      setData(result.data);
+      const response = await adminApi.getOrders(params);
+      setData({
+        data: response.data.data.orders,
+        pagination: response.data.data.pagination
+      });
     } catch (err) {
       setError(err instanceof Error ? err.message : 'An error occurred');
     } finally {
@@ -82,20 +77,8 @@ const AdminOrders: React.FC = () => {
   const updateOrderStatus = async (orderId: number, newStatus: string) => {
     try {
       setUpdatingStatus(orderId);
-      const token = localStorage.getItem('token');
       
-      const response = await fetch(`/api/admin/orders/${orderId}/status`, {
-        method: 'PUT',
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ status: newStatus }),
-      });
-
-      if (!response.ok) {
-        throw new Error('Failed to update order status');
-      }
+      await adminApi.updateOrderStatus(orderId, newStatus);
 
       setNotification({
         type: 'success',
@@ -348,7 +331,7 @@ const AdminOrders: React.FC = () => {
               </tr>
             </thead>
             <tbody className="bg-white divide-y divide-gray-200">
-              {data?.orders.map((order) => (
+              {data?.data && data.data.length > 0 ? data.data.map((order: Order) => (
                 <tr key={order.id} className="hover:bg-gray-50">
                   <td className="px-6 py-4 whitespace-nowrap">
                     <div>
@@ -397,7 +380,13 @@ const AdminOrders: React.FC = () => {
                     )}
                   </td>
                 </tr>
-              ))}
+              )) : (
+                <tr>
+                  <td colSpan={6} className="px-6 py-4 text-center text-gray-500">
+                    Cargando órdenes...
+                  </td>
+                </tr>
+              )}
             </tbody>
           </table>
         </div>
@@ -407,7 +396,7 @@ const AdminOrders: React.FC = () => {
       </div>
 
       {/* Empty State */}
-      {data?.orders.length === 0 && (
+      {data?.data.length === 0 && (
         <div className="text-center py-12">
           <ShoppingBagIcon className="mx-auto h-12 w-12 text-gray-400" />
           <h3 className="mt-2 text-sm font-medium text-gray-900">No se encontraron órdenes</h3>

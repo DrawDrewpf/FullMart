@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useSelector } from 'react-redux';
 import type { RootState } from '../store/store';
 import { formatPrice } from '../utils/currency';
+import { adminApi } from '../services/api';
 import { 
   ChartBarIcon, 
   UsersIcon, 
@@ -60,25 +61,8 @@ const AdminDashboard: React.FC = () => {
 
   const fetchDashboardData = async () => {
     try {
-      const token = localStorage.getItem('token');
-      const response = await fetch('/api/admin/dashboard', {
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json',
-        },
-      });
-
-      if (!response.ok) {
-        if (response.status === 403) {
-          setError('No tienes permisos para acceder al panel de administración');
-        } else {
-          throw new Error('Failed to fetch dashboard data');
-        }
-        return;
-      }
-
-      const result = await response.json();
-      setData(result.data);
+      const response = await adminApi.getDashboard();
+      setData(response.data.data);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'An error occurred');
     } finally {

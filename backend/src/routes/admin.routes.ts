@@ -285,4 +285,162 @@ router.get('/products', async (req: Request, res: Response, next: NextFunction) 
   }
 });
 
+// GET /api/admin/products/:id - Get single product for editing
+router.get('/products/:id', async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const productId = parseInt(req.params.id);
+    
+    const result = await pool.query('SELECT * FROM products WHERE id = $1', [productId]);
+    
+    if (result.rows.length === 0) {
+      return res.status(404).json({
+        success: false,
+        error: 'Product not found'
+      });
+    }
+
+    const response: ApiResponse<any> = {
+      success: true,
+      data: result.rows[0]
+    };
+
+    res.json(response);
+  } catch (error) {
+    next(error);
+  }
+});
+
+// POST /api/admin/products - Create new product
+router.post('/products', async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const {
+      name,
+      description,
+      price,
+      image_url,
+      category,
+      stock_quantity,
+      is_active = true
+    } = req.body;
+
+    // Basic validation
+    if (!name || !description || !price || !category) {
+      return res.status(400).json({
+        success: false,
+        error: 'Missing required fields: name, description, price, category'
+      });
+    }
+
+    const result = await pool.query(
+      `INSERT INTO products (name, description, price, image_url, category, stock_quantity, is_active) 
+       VALUES ($1, $2, $3, $4, $5, $6, $7) 
+       RETURNING *`,
+      [name, description, price, image_url, category, stock_quantity, is_active]
+    );
+
+    const response: ApiResponse<any> = {
+      success: true,
+      data: result.rows[0],
+      message: 'Product created successfully'
+    };
+
+    res.status(201).json(response);
+  } catch (error) {
+    next(error);
+  }
+});
+
+// PUT /api/admin/products/:id - Update product
+router.put('/products/:id', async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const productId = parseInt(req.params.id);
+    const {
+      name,
+      description,
+      price,
+      image_url,
+      category,
+      stock_quantity,
+      is_active
+    } = req.body;
+
+    // Check if product exists
+    const existingProduct = await pool.query('SELECT id FROM products WHERE id = $1', [productId]);
+    
+    if (existingProduct.rows.length === 0) {
+      return res.status(404).json({
+        success: false,
+        error: 'Product not found'
+      });
+    }
+
+    const result = await pool.query(
+      `UPDATE products 
+       SET name = $1, description = $2, price = $3, image_url = $4, 
+           category = $5, stock_quantity = $6, is_active = $7, updated_at = CURRENT_TIMESTAMP
+       WHERE id = $8 
+       RETURNING *`,
+      [name, description, price, image_url, category, stock_quantity, is_active, productId]
+    );
+
+    const response: ApiResponse<any> = {
+      success: true,
+      data: result.rows[0],
+      message: 'Product updated successfully'
+    };
+
+    res.json(response);
+  } catch (error) {
+    next(error);
+  }
+});
+
+// DELETE /api/admin/products/:id - Delete product (soft delete)
+router.delete('/products/:id', async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const productId = parseInt(req.params.id);
+
+    // Check if product exists
+    const existingProduct = await pool.query('SELECT id FROM products WHERE id = $1', [productId]);
+    
+    if (existingProduct.rows.length === 0) {
+      return res.status(404).json({
+        success: false,
+        error: 'Product not found'
+      });
+    }
+
+    // Soft delete by setting is_active to false
+    await pool.query(
+      'UPDATE products SET is_active = false, updated_at = CURRENT_TIMESTAMP WHERE id = $1',
+      [productId]
+    );
+
+    const response: ApiResponse<any> = {
+      success: true,
+      message: 'Product deleted successfully'
+    };
+
+    res.json(response);
+  } catch (error) {
+    next(error);
+  }
+});
+
+// GET /api/admin/categories - Get all available product categories
+router.get('/categories', async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const result = await pool.query('SELECT DISTINCT category FROM products ORDER BY category');
+    
+    const response: ApiResponse<any> = {
+      success: true,
+      data: result.rows.map(row => row.category)
+    };
+
+    res.json(response);
+  } catch (error) {
+    next(error);
+  }
+});
+
 export default router;
