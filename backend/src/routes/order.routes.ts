@@ -6,7 +6,6 @@ import { createOrderSchema } from '../validations/schemas';
 import { 
   CreateOrderRequest, 
   OrderResponse, 
-  OrderWithItems,
   PaymentMethod,
   PaymentStatus,
   OrderStatus 

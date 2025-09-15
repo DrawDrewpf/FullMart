@@ -1,8 +1,8 @@
 import { Router, Request, Response, NextFunction } from 'express';
 import { pool } from '../config/database';
 import { authenticateToken, requireAdmin } from '../middleware/auth';
-import { ApiResponse } from '../types';
-import { cacheDashboard, adminRateLimit, invalidateCache } from '../middleware/cache';
+import { ApiResponse, DashboardData, UserResponse } from '../types';
+import { cacheDashboard, adminRateLimit } from '../middleware/cache';
 
 const router = Router();
 
@@ -66,7 +66,7 @@ router.get('/dashboard', cacheDashboard, async (req: Request, res: Response, nex
       LIMIT 5
     `);
 
-    const response: ApiResponse<any> = {
+    const response: ApiResponse<DashboardData> = {
       success: true,
       data: {
         stats: {
@@ -96,7 +96,7 @@ router.get('/users', async (req: Request, res: Response, next: NextFunction) => 
     const offset = (page - 1) * limit;
 
     let whereClause = 'WHERE 1=1';
-    const queryParams: any[] = [];
+    const queryParams: (string | number)[] = [];
 
     if (search) {
       whereClause += ' AND (name ILIKE $1 OR email ILIKE $1)';
@@ -117,7 +117,7 @@ router.get('/users', async (req: Request, res: Response, next: NextFunction) => 
     
     const usersResult = await pool.query(usersQuery, [...queryParams, limit, offset]);
 
-    const response: ApiResponse<any> = {
+    const response: ApiResponse<{ users: UserResponse[]; pagination: { page: number; limit: number; total: number; totalPages: number } }> = {
       success: true,
       data: {
         users: usersResult.rows,
@@ -125,7 +125,7 @@ router.get('/users', async (req: Request, res: Response, next: NextFunction) => 
           page,
           limit,
           total: totalUsers,
-          pages: Math.ceil(totalUsers / limit)
+          totalPages: Math.ceil(totalUsers / limit)
         }
       }
     };

@@ -30,7 +30,7 @@ const ProductCard: React.FC<ProductCardProps> = ({
     e.preventDefault(); // Evitar navegación cuando se hace clic en el botón
     
     if (!isAuthenticated) {
-      alert('Debes iniciar sesión para agregar productos al carrito');
+      // TODO: Implement proper notification system
       return;
     }
     
@@ -38,7 +38,7 @@ const ProductCard: React.FC<ProductCardProps> = ({
       productId: product.id,
       quantity: 1
     }));
-    alert(`${product.name} agregado al carrito`);
+    // TODO: Show success notification
   };
 
   // Estilos dinámicos basados en el tamaño

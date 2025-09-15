@@ -1,6 +1,7 @@
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
 import { authAPI } from '../../services/api';
 import type { User, LoginCredentials, RegisterData } from '../../types';
+import { getErrorMessage } from '../../utils/errorHandling';
 
 interface AuthState {
   user: User | null;
@@ -28,8 +29,14 @@ export const loginUser = createAsyncThunk(
       localStorage.setItem('token', authData.token);
       localStorage.setItem('user', JSON.stringify(authData.user));
       return authData;
-    } catch (error: any) {
-      return rejectWithValue(error.response?.data?.message || 'Error al iniciar sesión');
+    } catch (error: unknown) {
+      const errorMessage = error instanceof Error && 'response' in error && 
+        typeof error.response === 'object' && error.response !== null &&
+        'data' in error.response && typeof error.response.data === 'object' &&
+        error.response.data !== null && 'message' in error.response.data
+        ? String(error.response.data.message)
+        : 'Error al iniciar sesión';
+      return rejectWithValue(errorMessage);
     }
   }
 );
@@ -43,8 +50,8 @@ export const registerUser = createAsyncThunk(
       localStorage.setItem('token', authData.token);
       localStorage.setItem('user', JSON.stringify(authData.user));
       return authData;
-    } catch (error: any) {
-      return rejectWithValue(error.response?.data?.message || 'Error al registrarse');
+    } catch (error: unknown) {
+      return rejectWithValue(getErrorMessage(error, 'Error al registrarse'));
     }
   }
 );
@@ -55,8 +62,8 @@ export const getCurrentUser = createAsyncThunk(
     try {
       const response = await authAPI.getCurrentUser();
       return response.data.data;
-    } catch (error: any) {
-      return rejectWithValue(error.response?.data?.message || 'Error al obtener usuario');
+    } catch (error: unknown) {
+      return rejectWithValue(getErrorMessage(error, 'Error al obtener usuario'));
     }
   }
 );
@@ -87,8 +94,8 @@ export const updateUserProfile = createAsyncThunk(
       localStorage.setItem('user', JSON.stringify(updatedUser));
       
       return updatedUser;
-    } catch (error: any) {
-      return rejectWithValue(error.message || 'Error al actualizar perfil');
+    } catch (error: unknown) {
+      return rejectWithValue(getErrorMessage(error, 'Error al actualizar perfil'));
     }
   }
 );

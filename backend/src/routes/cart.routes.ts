@@ -35,7 +35,14 @@ router.use(authenticateToken);
 // GET /api/cart
 router.get('/', async (req: Request, res: Response, next: NextFunction) => {
   try {
-    const userId = (req as any).user.id;
+    const userId = req.user?.id;
+    
+    if (!userId) {
+      return res.status(401).json({
+        success: false,
+        message: 'Usuario no autenticado'
+      });
+    }
 
     const result = await pool.query(`
       SELECT 
@@ -98,7 +105,15 @@ router.post('/add',
   validateBody(cartItemCreateSchema),
   async (req: Request, res: Response, next: NextFunction) => {
     try {
-      const userId = (req as any).user.id;
+      const userId = req.user?.id;
+      
+      if (!userId) {
+        return res.status(401).json({
+          success: false,
+          message: 'Usuario no autenticado'
+        });
+      }
+      
       const { productId, quantity = 1 } = req.body;
 
       // Check if product exists and is active
@@ -130,7 +145,6 @@ router.post('/add',
         [userId, productId]
       );
 
-      let result;
       if (existingItem.rows.length > 0) {
         // Update existing item
         const newQuantity = existingItem.rows[0].quantity + quantity;
@@ -142,13 +156,13 @@ router.post('/add',
           });
         }
 
-        result = await pool.query(
+        await pool.query(
           'UPDATE cart_items SET quantity = $1, updated_at = CURRENT_TIMESTAMP WHERE id = $2 RETURNING *',
           [newQuantity, existingItem.rows[0].id]
         );
       } else {
         // Create new cart item
-        result = await pool.query(
+        await pool.query(
           'INSERT INTO cart_items (user_id, product_id, quantity) VALUES ($1, $2, $3) RETURNING *',
           [userId, productId, quantity]
         );
@@ -216,7 +230,15 @@ router.put('/update',
   validateBody(cartItemUpdateSchema),
   async (req: Request, res: Response, next: NextFunction) => {
     try {
-      const userId = (req as any).user.id;
+      const userId = req.user?.id;
+      
+      if (!userId) {
+        return res.status(401).json({
+          success: false,
+          message: 'Usuario no autenticado'
+        });
+      }
+      
       const { productId, quantity } = req.body;
 
       if (quantity <= 0) {
@@ -319,7 +341,15 @@ router.put('/update',
 // DELETE /api/cart/remove/:productId
 router.delete('/remove/:productId', async (req: Request, res: Response, next: NextFunction) => {
   try {
-    const userId = (req as any).user.id;
+    const userId = req.user?.id;
+    
+    if (!userId) {
+      return res.status(401).json({
+        success: false,
+        message: 'Usuario no autenticado'
+      });
+    }
+    
     const { productId } = req.params;
 
     const result = await pool.query(
@@ -349,7 +379,14 @@ router.delete('/remove/:productId', async (req: Request, res: Response, next: Ne
 // DELETE /api/cart/clear
 router.delete('/clear', async (req: Request, res: Response, next: NextFunction) => {
   try {
-    const userId = (req as any).user.id;
+    const userId = req.user?.id;
+    
+    if (!userId) {
+      return res.status(401).json({
+        success: false,
+        message: 'Usuario no autenticado'
+      });
+    }
 
     await pool.query('DELETE FROM cart_items WHERE user_id = $1', [userId]);
 

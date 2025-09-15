@@ -1,13 +1,13 @@
 import { Router } from 'express';
 import { Request, Response, NextFunction } from 'express';
 import bcrypt from 'bcrypt';
-import jwt, { SignOptions } from 'jsonwebtoken';
+import jwt from 'jsonwebtoken';
 import { pool } from '../config/database';
-import { User, ApiResponse, UserRole, UserResponse } from '../types';
+import { ApiResponse, UserRole, UserResponse } from '../types';
 import { userCreateSchema, loginSchema } from '../validations/schemas';
 import { validateBody } from '../middleware/validation';
 import { authenticateToken } from '../middleware/auth';
-import { authRateLimit, cacheService } from '../middleware/cache';
+import { authRateLimit } from '../middleware/cache';
 
 const router = Router();
 

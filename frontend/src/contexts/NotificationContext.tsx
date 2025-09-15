@@ -1,34 +1,9 @@
-import React, { createContext, useContext, useState, useCallback } from 'react';
+import React, { useState, useCallback, createContext } from 'react';
 import { CheckCircleIcon, ExclamationCircleIcon, XMarkIcon } from '@heroicons/react/24/outline';
+import type { Notification, NotificationContextType } from '../types/notifications';
 
-export interface Notification {
-  id: string;
-  type: 'success' | 'error' | 'info' | 'warning';
-  title: string;
-  message?: string;
-  duration?: number;
-  action?: {
-    label: string;
-    onClick: () => void;
-  };
-}
-
-interface NotificationContextType {
-  notifications: Notification[];
-  addNotification: (notification: Omit<Notification, 'id'>) => void;
-  removeNotification: (id: string) => void;
-  clearAll: () => void;
-}
-
-const NotificationContext = createContext<NotificationContextType | undefined>(undefined);
-
-export const useNotifications = () => {
-  const context = useContext(NotificationContext);
-  if (!context) {
-    throw new Error('useNotifications must be used within a NotificationProvider');
-  }
-  return context;
-};
+// Create the context
+export const NotificationContext = createContext<NotificationContextType | undefined>(undefined);
 
 interface NotificationProviderProps {
   children: React.ReactNode;
@@ -37,12 +12,16 @@ interface NotificationProviderProps {
 export const NotificationProvider: React.FC<NotificationProviderProps> = ({ children }) => {
   const [notifications, setNotifications] = useState<Notification[]>([]);
 
+  const removeNotification = useCallback((id: string) => {
+    setNotifications(prev => prev.filter(notification => notification.id !== id));
+  }, []);
+
   const addNotification = useCallback((notification: Omit<Notification, 'id'>) => {
-    const id = Math.random().toString(36).substr(2, 9);
+    const id = Date.now().toString();
     const newNotification: Notification = {
       ...notification,
       id,
-      duration: notification.duration ?? 5000,
+      duration: notification.duration || 5000,
     };
 
     setNotifications(prev => [...prev, newNotification]);
@@ -50,14 +29,10 @@ export const NotificationProvider: React.FC<NotificationProviderProps> = ({ chil
     // Auto remove after duration
     if (newNotification.duration && newNotification.duration > 0) {
       setTimeout(() => {
-        setNotifications(prev => prev.filter(n => n.id !== id));
+        removeNotification(id);
       }, newNotification.duration);
     }
-  }, []);
-
-  const removeNotification = useCallback((id: string) => {
-    setNotifications(prev => prev.filter(notification => notification.id !== id));
-  }, []);
+  }, [removeNotification]);
 
   const clearAll = useCallback(() => {
     setNotifications([]);
@@ -68,19 +43,22 @@ export const NotificationProvider: React.FC<NotificationProviderProps> = ({ chil
       value={{ notifications, addNotification, removeNotification, clearAll }}
     >
       {children}
-      <NotificationContainer />
+      <NotificationContainer notifications={notifications} removeNotification={removeNotification} />
     </NotificationContext.Provider>
   );
 };
 
-const NotificationContainer: React.FC = () => {
-  const { notifications, removeNotification } = useNotifications();
+interface NotificationContainerProps {
+  notifications: Notification[];
+  removeNotification: (id: string) => void;
+}
 
+const NotificationContainer: React.FC<NotificationContainerProps> = ({ notifications, removeNotification }) => {
   if (notifications.length === 0) return null;
 
   return (
     <div className="fixed top-4 right-4 z-50 space-y-4 max-w-sm w-full">
-      {notifications.map((notification) => (
+      {notifications.map((notification: Notification) => (
         <NotificationToast
           key={notification.id}
           notification={notification}
@@ -105,6 +83,7 @@ const NotificationToast: React.FC<NotificationToastProps> = ({ notification, onC
         return <ExclamationCircleIcon className="h-6 w-6 text-red-400" />;
       case 'warning':
         return <ExclamationCircleIcon className="h-6 w-6 text-yellow-400" />;
+      case 'info':
       default:
         return <ExclamationCircleIcon className="h-6 w-6 text-blue-400" />;
     }
@@ -118,46 +97,32 @@ const NotificationToast: React.FC<NotificationToastProps> = ({ notification, onC
         return 'bg-red-50 border-red-200';
       case 'warning':
         return 'bg-yellow-50 border-yellow-200';
+      case 'info':
       default:
         return 'bg-blue-50 border-blue-200';
     }
   };
 
-  const getTextColor = () => {
-    switch (notification.type) {
-      case 'success':
-        return 'text-green-800';
-      case 'error':
-        return 'text-red-800';
-      case 'warning':
-        return 'text-yellow-800';
-      default:
-        return 'text-blue-800';
-    }
-  };
-
   return (
-    <div
-      className={`${getBgColor()} border rounded-lg shadow-lg p-4 transition-all duration-300 ease-in-out`}
-    >
+    <div className={`rounded-lg border p-4 shadow-lg transition-all duration-300 ease-in-out ${getBgColor()}`}>
       <div className="flex items-start">
         <div className="flex-shrink-0">
           {getIcon()}
         </div>
         <div className="ml-3 flex-1">
-          <p className={`text-sm font-medium ${getTextColor()}`}>
+          <h3 className="text-sm font-medium text-gray-900">
             {notification.title}
-          </p>
+          </h3>
           {notification.message && (
-            <p className={`mt-1 text-sm ${getTextColor()} opacity-75`}>
+            <p className="mt-1 text-sm text-gray-600">
               {notification.message}
             </p>
           )}
           {notification.action && (
-            <div className="mt-2">
+            <div className="mt-3">
               <button
                 onClick={notification.action.onClick}
-                className={`text-sm ${getTextColor()} underline hover:opacity-75`}
+                className="text-sm font-medium text-blue-600 hover:text-blue-500 transition-colors"
               >
                 {notification.action.label}
               </button>
@@ -167,7 +132,7 @@ const NotificationToast: React.FC<NotificationToastProps> = ({ notification, onC
         <div className="flex-shrink-0 ml-4">
           <button
             onClick={onClose}
-            className={`${getTextColor()} hover:opacity-75`}
+            className="inline-flex text-gray-400 hover:text-gray-600 transition-colors"
           >
             <XMarkIcon className="h-5 w-5" />
           </button>

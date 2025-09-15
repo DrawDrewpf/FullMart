@@ -3,15 +3,14 @@ import { Request, Response, NextFunction } from 'express';
 import { pool } from '../config/database';
 import { Product, ApiResponse, PaginatedResponse, UserRole } from '../types';
 import { productCreateSchema, productUpdateSchema } from '../validations/schemas';
-import { validateQuery, validateBody } from '../middleware/validation';
+import { validateBody } from '../middleware/validation';
 import { authenticateToken, requireRole } from '../middleware/auth';
 import { 
   cacheProducts, 
   cacheProduct, 
   cacheCategories, 
   invalidateCache,
-  apiRateLimit,
-  cacheService 
+  apiRateLimit
 } from '../middleware/cache';
 
 const router = Router();

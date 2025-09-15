@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useAppDispatch } from '../hooks/redux';
 import { clearCartAsync } from '../store/slices/cartSlice';
 import { ordersApi } from '../services/api';
-import { useNotifications } from '../contexts/NotificationContext';
+import { useNotifications } from '../hooks/useNotifications';
 import type { CreateOrderRequest } from '../types';
 
 export interface CheckoutState {

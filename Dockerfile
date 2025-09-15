@@ -1,7 +1,7 @@
 # Multi-stage build for production optimization
 
 # Frontend build stage
-FROM node:20-alpine AS frontend-build
+FROM node:22-alpine AS frontend-build
 WORKDIR /app/frontend
 
 # Copy frontend package files
@@ -13,7 +13,7 @@ COPY frontend/ ./
 RUN npm run build
 
 # Backend build stage
-FROM node:20-alpine AS backend-build
+FROM node:22-alpine AS backend-build
 WORKDIR /app/backend
 
 # Copy backend package files
@@ -25,7 +25,7 @@ COPY backend/ ./
 RUN npm run build
 
 # Production stage
-FROM node:20-alpine AS production
+FROM node:22-alpine AS production
 
 # Install dumb-init for signal handling
 RUN apk add --no-cache dumb-init

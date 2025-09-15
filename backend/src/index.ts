@@ -4,7 +4,7 @@ import helmet from 'helmet';
 import morgan from 'morgan';
 import rateLimit from 'express-rate-limit';
 import dotenv from 'dotenv';
-import { connectDB, initializeTables } from './config/database';
+import { connectDB } from './config/database';
 import { errorHandler } from './middleware/errorHandler';
 
 // Import routes

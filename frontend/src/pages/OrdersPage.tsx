@@ -2,7 +2,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { ordersApi } from '../services/api';
 import OrderCard from '../components/orders/OrderCard';
 import OrderDetailModal from '../components/orders/OrderDetailModal';
-import { useNotifications } from '../contexts/NotificationContext';
+import { useNotifications } from '../hooks/useNotifications';
 import type { Order } from '../types';
 
 const OrdersPageNew: React.FC = () => {

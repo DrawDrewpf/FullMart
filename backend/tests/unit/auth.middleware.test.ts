@@ -6,7 +6,7 @@ import { UserRole } from '../../src/types';
 // Mock dependencies
 jest.mock('bcrypt');
 jest.mock('jsonwebtoken');
-const mockedBcrypt = bcrypt as jest.Mocked<typeof bcrypt>;
+const _mockedBcrypt = bcrypt as jest.Mocked<typeof bcrypt>;
 const mockedJwt = jwt as jest.Mocked<typeof jwt>;
 
 describe('Auth Middleware', () => {

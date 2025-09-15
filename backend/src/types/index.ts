@@ -273,7 +273,7 @@ export interface Address {
 }
 
 // API Response types
-export interface ApiResponse<T = any> {
+export interface ApiResponse<T = unknown> {
   success: boolean;
   data?: T;
   message?: string;
@@ -291,10 +291,15 @@ export interface PaginatedResponse<T> {
   };
 }
 
+export interface ValidationError {
+  field: string;
+  message: string;
+}
+
 export interface ApiError {
   message: string;
   statusCode: number;
-  errors?: any[];
+  errors?: ValidationError[];
 }
 
 // JWT Payload
@@ -309,4 +314,30 @@ export interface JwtPayload {
 // Request types for Express
 export interface AuthenticatedRequest extends Request {
   user?: JwtPayload;
+}
+
+// Admin Dashboard types
+export interface DashboardStats {
+  totalUsers: number;
+  totalProducts: number;
+  totalOrders: number;
+  totalRevenue: number;
+}
+
+export interface MonthlyRevenue {
+  month: string;
+  revenue: number;
+}
+
+export interface TopProduct {
+  product_id: number;
+  product_name: string;
+  total_sold: number;
+}
+
+export interface DashboardData {
+  stats: DashboardStats;
+  recentOrders: OrderResponse[];
+  monthlyRevenue: MonthlyRevenue[];
+  topProducts: TopProduct[];
 }

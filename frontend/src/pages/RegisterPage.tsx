@@ -18,14 +18,14 @@ const RegisterPage = () => {
     e.preventDefault();
     
     if (password !== confirmPassword) {
-      alert('Las contraseñas no coinciden');
+      // TODO: Show proper error notification
       return;
     }
 
     try {
       await dispatch(registerUser({ username, email, password })).unwrap();
       navigate('/');
-    } catch (error) {
+    } catch {
       // Error is handled by Redux
     }
   };

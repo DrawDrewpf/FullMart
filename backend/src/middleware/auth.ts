@@ -76,7 +76,7 @@ export const optionalAuth = (req: Request, res: Response, next: NextFunction) =>
   try {
     const decoded = jwt.verify(token, process.env.JWT_SECRET!) as JwtPayload;
     req.user = decoded;
-  } catch (error) {
+  } catch {
     // Ignore token errors for optional auth
   }
 

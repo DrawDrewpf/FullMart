@@ -97,13 +97,12 @@ const ProductDetailPage = () => {
 
   const handleAddToCart = () => {
     if (!isAuthenticated) {
-      alert('Debes iniciar sesión para agregar productos al carrito');
+      // TODO: Show proper error notification
       return;
     }
     
     dispatch(addToCartAsync({ productId: product.id, quantity }));
-    // Mostrar notificación (más adelante implementaremos toast)
-    alert(`${quantity} x ${product.name} agregado al carrito`);
+    // TODO: Show success notification
   };
 
   const handleQuantityChange = (newQuantity: number) => {

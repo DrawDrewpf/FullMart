@@ -1,6 +1,7 @@
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
 import { cartAPI } from '../../services/api';
 import type { CartItem } from '../../types';
+import { getErrorMessage } from '../../utils/errorHandling';
 
 interface CartState {
   items: CartItem[];
@@ -26,8 +27,7 @@ export const fetchCart = createAsyncThunk(
       const response = await cartAPI.getCart();
       return response.data.data;
     } catch (error: unknown) {
-      const err = error as any;
-      return rejectWithValue(err.response?.data?.message || 'Error al cargar el carrito');
+      return rejectWithValue(getErrorMessage(error, 'Error al cargar el carrito'));
     }
   }
 );
@@ -39,8 +39,7 @@ export const addToCartAsync = createAsyncThunk(
       const response = await cartAPI.addToCart(productId, quantity);
       return response.data.data;
     } catch (error: unknown) {
-      const err = error as any;
-      return rejectWithValue(err.response?.data?.message || 'Error al agregar al carrito');
+      return rejectWithValue(getErrorMessage(error, 'Error al agregar al carrito'));
     }
   }
 );
@@ -52,8 +51,7 @@ export const updateCartItemAsync = createAsyncThunk(
       const response = await cartAPI.updateCart(productId, quantity);
       return response.data.data;
     } catch (error: unknown) {
-      const err = error as any;
-      return rejectWithValue(err.response?.data?.message || 'Error al actualizar el carrito');
+      return rejectWithValue(getErrorMessage(error, 'Error al actualizar el carrito'));
     }
   }
 );
@@ -65,8 +63,7 @@ export const removeFromCartAsync = createAsyncThunk(
       await cartAPI.removeFromCart(productId);
       return productId;
     } catch (error: unknown) {
-      const err = error as any;
-      return rejectWithValue(err.response?.data?.message || 'Error al eliminar del carrito');
+      return rejectWithValue(getErrorMessage(error, 'Error al eliminar del carrito'));
     }
   }
 );
@@ -78,8 +75,7 @@ export const clearCartAsync = createAsyncThunk(
       await cartAPI.clearCart();
       return null;
     } catch (error: unknown) {
-      const err = error as any;
-      return rejectWithValue(err.response?.data?.message || 'Error al limpiar el carrito');
+      return rejectWithValue(getErrorMessage(error, 'Error al limpiar el carrito'));
     }
   }
 );
