@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.paginationSchema = exports.idParamSchema = exports.orderCreateSchema = exports.addressSchema = exports.createOrderSchema = exports.cartItemUpdateSchema = exports.cartItemCreateSchema = exports.productQuerySchema = exports.productUpdateSchema = exports.productCreateSchema = exports.loginSchema = exports.userUpdateSchema = exports.userCreateSchema = void 0;
+exports.addressCreateSchema = exports.changePasswordSchema = exports.userProfileSchema = exports.paginationSchema = exports.idParamSchema = exports.orderCreateSchema = exports.addressSchema = exports.createOrderSchema = exports.cartItemUpdateSchema = exports.cartItemCreateSchema = exports.productQuerySchema = exports.productUpdateSchema = exports.productCreateSchema = exports.loginSchema = exports.userUpdateSchema = exports.userCreateSchema = void 0;
 const zod_1 = require("zod");
 // User validation schemas
 exports.userCreateSchema = zod_1.z.object({
@@ -89,4 +89,23 @@ exports.idParamSchema = zod_1.z.object({
 exports.paginationSchema = zod_1.z.object({
     page: zod_1.z.number().int().positive().default(1),
     limit: zod_1.z.number().int().positive().max(100).default(10),
+});
+// User profile schemas
+exports.userProfileSchema = zod_1.z.object({
+    name: zod_1.z.string().min(2, 'El nombre debe tener al menos 2 caracteres'),
+    email: zod_1.z.string().email('Email inválido'),
+    phone: zod_1.z.string().optional(),
+});
+exports.changePasswordSchema = zod_1.z.object({
+    currentPassword: zod_1.z.string().min(1, 'La contraseña actual es requerida'),
+    newPassword: zod_1.z.string().min(6, 'La nueva contraseña debe tener al menos 6 caracteres'),
+});
+// Address schema
+exports.addressCreateSchema = zod_1.z.object({
+    street: zod_1.z.string().min(5, 'La dirección debe tener al menos 5 caracteres'),
+    city: zod_1.z.string().min(2, 'La ciudad debe tener al menos 2 caracteres'),
+    state: zod_1.z.string().min(2, 'El estado/provincia debe tener al menos 2 caracteres'),
+    zipCode: zod_1.z.string().min(3, 'El código postal debe tener al menos 3 caracteres'),
+    country: zod_1.z.string().min(2, 'El país debe tener al menos 2 caracteres'),
+    isDefault: zod_1.z.boolean().optional(),
 });

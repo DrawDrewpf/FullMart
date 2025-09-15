@@ -123,7 +123,7 @@ router.post('/login',
         data: {
           user: {
             id: user.id,
-            username: user.username,
+            username: user.name, // Using name as username for compatibility
             email: user.email,
             role: user.role,
             created_at: user.created_at,
@@ -154,53 +154,13 @@ router.post('/logout', (req: Request, res: Response) => {
   res.json(response);
 });
 
-// GET /api/auth/me
-router.get('/me', 
-  authenticateToken,
-  async (req: Request, res: Response, next: NextFunction) => {
-    try {
-      const userId = (req as any).user.id;
-
-      const result = await pool.query(
-        'SELECT id, username, email, role, created_at, updated_at FROM users WHERE id = $1',
-        [userId]
-      );
-
-      if (result.rows.length === 0) {
-        return res.status(404).json({
-          success: false,
-          message: 'User not found'
-        });
-      }
-
-      const user = result.rows[0];
-
-      const response: ApiResponse<UserResponse> = {
-        success: true,
-        data: {
-          id: user.id,
-          username: user.username,
-          email: user.email,
-          role: user.role,
-          created_at: user.created_at,
-          updated_at: user.updated_at
-        }
-      };
-
-      res.json(response);
-    } catch (error) {
-      next(error);
-    }
-  }
-);
-
 // GET /api/auth/me - Get current user info
 router.get('/me', authenticateToken, async (req: Request, res: Response, next: NextFunction) => {
   try {
-    const userId = (req as any).user.id;
+    const userId = req.user!.id;
     
     const result = await pool.query(
-      'SELECT id, username, email, role, created_at, updated_at FROM users WHERE id = $1',
+      'SELECT id, name, email, role, created_at, updated_at FROM users WHERE id = $1',
       [userId]
     );
 
@@ -216,7 +176,7 @@ router.get('/me', authenticateToken, async (req: Request, res: Response, next: N
       success: true,
       data: {
         id: user.id,
-        username: user.username,
+        username: user.name, // Using name as username for compatibility
         email: user.email,
         role: user.role,
         created_at: user.created_at,

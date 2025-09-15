@@ -1,5 +1,6 @@
 import { Link } from 'react-router-dom';
 import { useDispatch } from 'react-redux';
+import { useState, useEffect } from 'react';
 import { logout } from '../../store/slices/authSlice';
 import { useAppSelector } from '../../hooks/redux';
 import type { AppDispatch } from '../../store/store';
@@ -8,9 +9,24 @@ const Header = () => {
   const dispatch = useDispatch<AppDispatch>();
   const { itemCount } = useAppSelector((state) => state.cart);
   const { isAuthenticated, user } = useAppSelector((state) => state.auth);
+  const [showUserMenu, setShowUserMenu] = useState(false);
+
+  // Close menu when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      const target = event.target as Element;
+      if (showUserMenu && !target.closest('.user-menu-container')) {
+        setShowUserMenu(false);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, [showUserMenu]);
 
   const handleLogout = () => {
     dispatch(logout());
+    setShowUserMenu(false);
   };
 
   return (
@@ -54,14 +70,42 @@ const Header = () => {
 
             {/* Auth */}
             {isAuthenticated ? (
-              <div className="flex items-center space-x-2">
-                <span className="text-gray-700">Hola, {user?.username}</span>
+              <div className="relative user-menu-container">
                 <button 
-                  onClick={handleLogout}
-                  className="text-gray-500 hover:text-gray-700"
+                  onClick={() => setShowUserMenu(!showUserMenu)}
+                  className="flex items-center space-x-2 text-gray-700 hover:text-orange-600 transition-colors"
                 >
-                  Salir
+                  <span>Hola, {user?.name || user?.username}</span>
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                  </svg>
                 </button>
+                
+                {showUserMenu && (
+                  <div className="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg py-1 z-10 border border-gray-200">
+                    <Link 
+                      to="/profile"
+                      className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 transition-colors"
+                      onClick={() => setShowUserMenu(false)}
+                    >
+                      Mi Perfil
+                    </Link>
+                    <Link 
+                      to="/orders"
+                      className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 transition-colors"
+                      onClick={() => setShowUserMenu(false)}
+                    >
+                      Mis Pedidos
+                    </Link>
+                    <hr className="my-1" />
+                    <button 
+                      onClick={handleLogout}
+                      className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 transition-colors"
+                    >
+                      Cerrar Sesión
+                    </button>
+                  </div>
+                )}
               </div>
             ) : (
               <div className="space-x-2">

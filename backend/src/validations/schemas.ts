@@ -107,9 +107,34 @@ export type LoginInput = z.infer<typeof loginSchema>;
 export type ProductCreateInput = z.infer<typeof productCreateSchema>;
 export type ProductUpdateInput = z.infer<typeof productUpdateSchema>;
 export type ProductQueryInput = z.infer<typeof productQuerySchema>;
+// User profile schemas
+export const userProfileSchema = z.object({
+  name: z.string().min(2, 'El nombre debe tener al menos 2 caracteres'),
+  email: z.string().email('Email inválido'),
+  phone: z.string().optional(),
+});
+
+export const changePasswordSchema = z.object({
+  currentPassword: z.string().min(1, 'La contraseña actual es requerida'),
+  newPassword: z.string().min(6, 'La nueva contraseña debe tener al menos 6 caracteres'),
+});
+
+// Address schema
+export const addressCreateSchema = z.object({
+  street: z.string().min(5, 'La dirección debe tener al menos 5 caracteres'),
+  city: z.string().min(2, 'La ciudad debe tener al menos 2 caracteres'),
+  state: z.string().min(2, 'El estado/provincia debe tener al menos 2 caracteres'),
+  zipCode: z.string().min(3, 'El código postal debe tener al menos 3 caracteres'),
+  country: z.string().min(2, 'El país debe tener al menos 2 caracteres'),
+  isDefault: z.boolean().optional(),
+});
+
 export type CartItemCreateInput = z.infer<typeof cartItemCreateSchema>;
 export type CartItemUpdateInput = z.infer<typeof cartItemUpdateSchema>;
 export type CreateOrderInput = z.infer<typeof createOrderSchema>;
 export type OrderCreateInput = z.infer<typeof orderCreateSchema>;
 export type AddressInput = z.infer<typeof addressSchema>;
 export type IdParam = z.infer<typeof idParamSchema>;
+export type UserProfileInput = z.infer<typeof userProfileSchema>;
+export type ChangePasswordInput = z.infer<typeof changePasswordSchema>;
+export type AddressCreateInput = z.infer<typeof addressCreateSchema>;

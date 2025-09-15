@@ -21,7 +21,7 @@ router.post('/', auth_1.authenticateToken, (0, validation_1.validateBody)(schema
     const client = await pool.connect();
     try {
         await client.query('BEGIN');
-        const userId = req.user.userId;
+        const userId = req.user.id;
         const orderData = req.body;
         // 1. Get user's cart items
         const cartQuery = `
@@ -164,7 +164,7 @@ router.post('/', auth_1.authenticateToken, (0, validation_1.validateBody)(schema
  */
 router.get('/', auth_1.authenticateToken, async (req, res) => {
     try {
-        const userId = req.user.userId;
+        const userId = req.user.id;
         const ordersQuery = `
       SELECT 
         o.*,
@@ -226,7 +226,7 @@ router.get('/', auth_1.authenticateToken, async (req, res) => {
  */
 router.get('/:id', auth_1.authenticateToken, async (req, res) => {
     try {
-        const userId = req.user.userId;
+        const userId = req.user.id;
         const orderId = parseInt(req.params.id);
         if (isNaN(orderId)) {
             return res.status(400).json({

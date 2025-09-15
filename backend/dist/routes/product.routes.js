@@ -17,9 +17,15 @@ router.get('/', async (req, res, next) => {
         let paramCount = 0;
         // Add filters
         if (category) {
-            paramCount++;
-            whereClause += ` AND category = $${paramCount}`;
-            queryParams.push(category);
+            // Handle multiple categories (comma-separated)
+            const categories = typeof category === 'string' ? category.split(',').map(cat => cat.trim()) : [category];
+            if (categories.length > 0) {
+                paramCount++;
+                const placeholders = categories.map((_, index) => `$${paramCount + index}`).join(', ');
+                whereClause += ` AND category IN (${placeholders})`;
+                queryParams.push(...categories);
+                paramCount += categories.length - 1;
+            }
         }
         if (search) {
             paramCount++;
@@ -169,6 +175,47 @@ router.get('/categories/list', async (req, res, next) => {
         const response = {
             success: true,
             data: categories
+        };
+        res.json(response);
+    }
+    catch (error) {
+        next(error);
+    }
+});
+// Get filters data (categories and price range)
+router.get('/filters/categories', async (req, res, next) => {
+    try {
+        // Get categories with count and price range for each
+        const categoriesResult = await database_1.pool.query(`
+      SELECT 
+        category,
+        COUNT(*) as count,
+        MIN(price) as min_price,
+        MAX(price) as max_price
+      FROM products 
+      WHERE is_active = true 
+      GROUP BY category 
+      ORDER BY category
+    `);
+        const categories = categoriesResult.rows.map(row => ({
+            category: row.category,
+            count: parseInt(row.count),
+            min_price: parseFloat(row.min_price),
+            max_price: parseFloat(row.max_price)
+        }));
+        // Get overall price range
+        const priceResult = await database_1.pool.query('SELECT MIN(price) as min_price, MAX(price) as max_price FROM products WHERE is_active = true');
+        const priceRange = priceResult.rows[0];
+        const filtersData = {
+            categories,
+            priceRange: {
+                min_price: parseFloat(priceRange.min_price) || 0,
+                max_price: parseFloat(priceRange.max_price) || 1000
+            }
+        };
+        const response = {
+            success: true,
+            data: filtersData
         };
         res.json(response);
     }

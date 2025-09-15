@@ -11,6 +11,7 @@ const validateBody = (schema) => {
         }
         catch (error) {
             if (error instanceof zod_1.ZodError) {
+                console.error('❌ Validation failed:', error.issues);
                 return res.status(400).json({
                     success: false,
                     message: 'Datos de entrada inválidos',

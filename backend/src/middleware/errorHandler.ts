@@ -49,19 +49,11 @@ export const errorHandler = (
     user: req.user?.id,
   });
 
-  const response: ApiError = {
-    message,
-    statusCode,
-  };
-
-  // Don't leak error details in production
-  if (process.env.NODE_ENV === 'development') {
-    response.errors = [error.stack];
-  }
-
+  // Send simplified error response
   res.status(statusCode).json({
     success: false,
-    error: response,
+    error: message,
+    ...(process.env.NODE_ENV === 'development' && { stack: error.stack })
   });
 };
 

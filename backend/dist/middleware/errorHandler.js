@@ -35,7 +35,7 @@ const errorHandler = (error, req, res, next) => {
         path: req.path,
         method: req.method,
         body: req.body,
-        user: req.user?.userId,
+        user: req.user?.id,
     });
     const response = {
         message,

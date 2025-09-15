@@ -103,9 +103,50 @@ router.post('/add', (0, validation_1.validateBody)(schemas_1.cartItemCreateSchem
             // Create new cart item
             result = await database_1.pool.query('INSERT INTO cart_items (user_id, product_id, quantity) VALUES ($1, $2, $3) RETURNING *', [userId, productId, quantity]);
         }
+        // After adding/updating the item, fetch the complete updated cart
+        const cartResult = await database_1.pool.query(`
+        SELECT 
+          ci.id,
+          ci.quantity,
+          ci.created_at,
+          ci.updated_at,
+          p.id as product_id,
+          p.name as product_name,
+          p.description,
+          p.price,
+          p.image_url,
+          p.category,
+          p.stock_quantity,
+          p.is_active
+        FROM cart_items ci
+        JOIN products p ON ci.product_id = p.id
+        WHERE ci.user_id = $1 AND p.is_active = true
+        ORDER BY ci.created_at DESC
+      `, [userId]);
+        const cartItems = cartResult.rows.map(row => ({
+            id: row.id,
+            userId: userId,
+            productId: row.product_id,
+            quantity: row.quantity,
+            product: {
+                id: row.product_id,
+                name: row.product_name,
+                description: row.description,
+                price: parseFloat(row.price),
+                category: row.category,
+                stock: row.stock_quantity,
+                imageUrl: row.image_url,
+                isActive: row.is_active,
+                createdAt: row.created_at,
+                updatedAt: row.updated_at
+            },
+            createdAt: row.created_at,
+            updatedAt: row.updated_at
+        }));
+        const total = cartItems.reduce((sum, item) => sum + (item.product.price * item.quantity), 0);
         const response = {
             success: true,
-            data: { message: 'Item added to cart successfully' },
+            data: { items: cartItems, total },
             message: 'Item added to cart successfully'
         };
         res.json(response);
@@ -147,9 +188,50 @@ router.put('/update', (0, validation_1.validateBody)(schemas_1.cartItemUpdateSch
                 message: 'Cart item not found'
             });
         }
+        // After updating the item, fetch the complete updated cart
+        const cartResult = await database_1.pool.query(`
+        SELECT 
+          ci.id,
+          ci.quantity,
+          ci.created_at,
+          ci.updated_at,
+          p.id as product_id,
+          p.name as product_name,
+          p.description,
+          p.price,
+          p.image_url,
+          p.category,
+          p.stock_quantity,
+          p.is_active
+        FROM cart_items ci
+        JOIN products p ON ci.product_id = p.id
+        WHERE ci.user_id = $1 AND p.is_active = true
+        ORDER BY ci.created_at DESC
+      `, [userId]);
+        const cartItems = cartResult.rows.map(row => ({
+            id: row.id,
+            userId: userId,
+            productId: row.product_id,
+            quantity: row.quantity,
+            product: {
+                id: row.product_id,
+                name: row.product_name,
+                description: row.description,
+                price: parseFloat(row.price),
+                category: row.category,
+                stock: row.stock_quantity,
+                imageUrl: row.image_url,
+                isActive: row.is_active,
+                createdAt: row.created_at,
+                updatedAt: row.updated_at
+            },
+            createdAt: row.created_at,
+            updatedAt: row.updated_at
+        }));
+        const total = cartItems.reduce((sum, item) => sum + (item.product.price * item.quantity), 0);
         const response = {
             success: true,
-            data: { message: 'Cart updated successfully' },
+            data: { items: cartItems, total },
             message: 'Cart updated successfully'
         };
         res.json(response);
