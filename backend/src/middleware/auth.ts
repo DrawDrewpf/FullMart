@@ -4,6 +4,7 @@ import { JwtPayload, UserRole } from '../types';
 
 // Extend Express Request interface
 declare global {
+  // eslint-disable-next-line @typescript-eslint/no-namespace
   namespace Express {
     interface Request {
       user?: JwtPayload;
