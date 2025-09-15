@@ -11,7 +11,7 @@
     "test:watch": "jest --watch",
     "test:coverage": "jest --coverage",
     "test:ci": "jest --ci --coverage --watchAll=false",
-    "lint": "echo 'Backend linting would go here'",
+    "lint": "tsc --noEmit && echo 'Backend TypeScript check passed'",
     "type-check": "tsc --noEmit"
   },
   "keywords": [],

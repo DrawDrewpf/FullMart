@@ -89,7 +89,7 @@ jobs:
           --health-retries 5
         ports:
           - 6379:6379
-    
+
     steps:
     - name: Checkout code
       uses: actions/checkout@v4
@@ -102,6 +102,11 @@ jobs:
         cache-dependency-path: |
           frontend/package-lock.json
           backend/package-lock.json
+
+    - name: Install PostgreSQL Client
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y postgresql-client
     
     - name: Install Frontend Dependencies
       run: |
@@ -116,38 +121,48 @@ jobs:
     - name: Setup Test Database
       run: |
         cd backend
+        # Wait for postgres to be ready
+        until pg_isready -h localhost -p 5432 -U ${{ env.POSTGRES_USER }}; do
+          echo "Waiting for postgres..."
+          sleep 2
+        done
+        # Create database schema
         PGPASSWORD=${{ env.POSTGRES_PASSWORD }} psql -h localhost -U ${{ env.POSTGRES_USER }} -d ${{ env.POSTGRES_DB }} -f sql/init_db.sql
       env:
+        PGPASSWORD: ${{ env.POSTGRES_PASSWORD }}
         DATABASE_URL: postgresql://${{ env.POSTGRES_USER }}:${{ env.POSTGRES_PASSWORD }}@localhost:5432/${{ env.POSTGRES_DB }}
     
     - name: Run Backend Tests
       run: |
         cd backend
-        npm test
+        npm run test:ci
       env:
         NODE_ENV: test
         DATABASE_URL: postgresql://${{ env.POSTGRES_USER }}:${{ env.POSTGRES_PASSWORD }}@localhost:5432/${{ env.POSTGRES_DB }}
         REDIS_URL: ${{ env.REDIS_URL }}
-        JWT_SECRET: test-secret-key
+        JWT_SECRET: test-secret-key-for-ci
+        BCRYPT_ROUNDS: 4
     
     - name: Run Frontend Tests
       run: |
         cd frontend
-        npm test
+        npm run test:coverage
     
     - name: Upload Backend Coverage
-      uses: codecov/codecov-action@v3
+      uses: actions/upload-artifact@v3
+      if: always()
       with:
-        directory: ./backend/coverage
-        flags: backend
         name: backend-coverage
+        path: backend/coverage/
+        retention-days: 30
     
-    - name: Upload Frontend Coverage
-      uses: codecov/codecov-action@v3
+    - name: Upload Frontend Coverage  
+      uses: actions/upload-artifact@v3
+      if: always()
       with:
-        directory: ./frontend/coverage
-        flags: frontend
         name: frontend-coverage
+        path: frontend/coverage/
+        retention-days: 30
 
   build:
     name: Build Applications
@@ -187,7 +202,7 @@ jobs:
         cd frontend
         npm run build
       env:
-        VITE_API_URL: ${{ secrets.VITE_API_URL || 'http://localhost:3001' }}
+        VITE_API_URL: http://localhost:3001
     
     - name: Upload Build Artifacts
       uses: actions/upload-artifact@v3
@@ -206,13 +221,10 @@ jobs:
     - name: Checkout code
       uses: actions/checkout@v4
       
-    - name: Run Snyk Security Scan
-      uses: snyk/actions/node@master
-      continue-on-error: true
-      env:
-        SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
       with:
-        args: --severity-threshold=high
+        node-version: ${{ env.NODE_VERSION }}
     
     - name: Audit Frontend Dependencies
       run: |
