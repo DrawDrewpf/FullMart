@@ -6,6 +6,7 @@ import { store } from './store/store';
 import { getCurrentUser } from './store/slices/authSlice';
 import { fetchCart } from './store/slices/cartSlice';
 import type { AppDispatch } from './store/store';
+import { NotificationProvider } from './contexts/NotificationContext';
 import Header from './components/common/Header';
 import Footer from './components/common/Footer';
 import ProtectedRoute from './components/common/ProtectedRoute';
@@ -22,6 +23,7 @@ import AdminDashboard from './pages/AdminDashboard';
 import AdminUsers from './pages/AdminUsers';
 import AdminOrders from './pages/AdminOrders';
 import AdminProducts from './pages/AdminProducts';
+import OrderSuccessPage from './pages/OrderSuccessPage';
 
 function AppContent() {
   const dispatch = useDispatch<AppDispatch>();
@@ -47,6 +49,7 @@ function AppContent() {
           <Route path="/cart" element={<CartPage />} />
           <Route path="/checkout" element={<CheckoutPage />} />
           <Route path="/orders" element={<OrdersPage />} />
+          <Route path="/order-success/:orderId" element={<OrderSuccessPage />} />
           <Route path="/profile" element={<ProfilePage />} />
           <Route path="/login" element={<LoginPage />} />
           <Route path="/register" element={<RegisterPage />} />
@@ -82,9 +85,11 @@ function AppContent() {
 function App() {
   return (
     <Provider store={store}>
-      <Router>
-        <AppContent />
-      </Router>
+      <NotificationProvider>
+        <Router>
+          <AppContent />
+        </Router>
+      </NotificationProvider>
     </Provider>
   );
 }
