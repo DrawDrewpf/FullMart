@@ -7,11 +7,13 @@ import { User, ApiResponse, UserRole, UserResponse } from '../types';
 import { userCreateSchema, loginSchema } from '../validations/schemas';
 import { validateBody } from '../middleware/validation';
 import { authenticateToken } from '../middleware/auth';
+import { authRateLimit, cacheService } from '../middleware/cache';
 
 const router = Router();
 
 // POST /api/auth/register
 router.post('/register', 
+  authRateLimit,
   validateBody(userCreateSchema),
   async (req: Request, res: Response, next: NextFunction) => {
     try {
@@ -79,6 +81,7 @@ router.post('/register',
 
 // POST /api/auth/login
 router.post('/login', 
+  authRateLimit,
   validateBody(loginSchema),
   async (req: Request, res: Response, next: NextFunction) => {
     try {

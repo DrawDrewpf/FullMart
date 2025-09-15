@@ -1,0 +1,74 @@
+version: '3.8'
+
+services:
+  # Database service for development
+  db:
+    image: postgres:15-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: fullmart
+      POSTGRES_PASSWORD: fullmart
+      POSTGRES_DB: fullmart_db
+    ports:
+      - "5432:5432"
+    volumes:
+      - db-data-dev:/var/lib/postgresql/data
+      - ./backend/sql:/docker-entrypoint-initdb.d
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U fullmart -d fullmart_db"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # Redis cache service for development
+  redis:
+    image: redis:7-alpine
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis-data-dev:/data
+    command: redis-server --appendonly yes
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+
+  # Redis Commander (Redis GUI) for development
+  redis-commander:
+    image: rediscommander/redis-commander:latest
+    restart: unless-stopped
+    environment:
+      REDIS_HOSTS: local:redis:6379
+    ports:
+      - "8081:8081"
+    depends_on:
+      - redis
+
+  # pgAdmin for database management
+  pgadmin:
+    image: dpage/pgadmin4:latest
+    restart: unless-stopped
+    environment:
+      PGADMIN_DEFAULT_EMAIL: admin@fullmart.com
+      PGADMIN_DEFAULT_PASSWORD: admin
+      PGADMIN_CONFIG_SERVER_MODE: 'False'
+    ports:
+      - "8080:80"
+    volumes:
+      - pgadmin-data:/var/lib/pgadmin
+    depends_on:
+      - db
+
+volumes:
+  db-data-dev:
+    driver: local
+  redis-data-dev:
+    driver: local
+  pgadmin-data:
+    driver: local
+
+networks:
+  default:
+    name: fullmart-dev-network

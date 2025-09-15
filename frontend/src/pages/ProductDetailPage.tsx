@@ -131,9 +131,8 @@ const ProductDetailPage = () => {
               src={product.image_url} 
               alt={product.name}
               className="w-full h-full object-cover hover:scale-105 transition-transform duration-300"
-              fallbackText="Imagen no disponible actualmente"
               category={product.category}
-              size="large"
+              priority={true}
             />
           </div>
         </div>

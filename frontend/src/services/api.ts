@@ -10,7 +10,6 @@ import type {
   Order,
   CreateOrderRequest,
   AdminDashboardData,
-  AdminUser,
   AdminOrder,
   AdminProductsResponse,
   AdminUsersResponse,

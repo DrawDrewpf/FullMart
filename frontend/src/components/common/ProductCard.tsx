@@ -13,13 +13,15 @@ interface ProductCardProps {
   size?: 'small' | 'medium' | 'large';
   showDescription?: boolean;
   className?: string;
+  priority?: boolean; // Para lazy loading
 }
 
 const ProductCard: React.FC<ProductCardProps> = ({ 
   product, 
   size = 'medium',
   showDescription = true,
-  className = ''
+  className = '',
+  priority = false
 }) => {
   const dispatch = useDispatch<AppDispatch>();
   const { isAuthenticated } = useAppSelector((state) => state.auth);
@@ -91,7 +93,7 @@ const ProductCard: React.FC<ProductCardProps> = ({
           alt={product.name}
           category={product.category}
           className={styles.image}
-          size={size}
+          priority={priority}
         />
       </Link>
       

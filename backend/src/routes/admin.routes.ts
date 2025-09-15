@@ -2,14 +2,15 @@ import { Router, Request, Response, NextFunction } from 'express';
 import { pool } from '../config/database';
 import { authenticateToken, requireAdmin } from '../middleware/auth';
 import { ApiResponse } from '../types';
+import { cacheDashboard, adminRateLimit, invalidateCache } from '../middleware/cache';
 
 const router = Router();
 
 // Apply admin authentication to all routes
-router.use(authenticateToken, requireAdmin);
+router.use(authenticateToken, requireAdmin, adminRateLimit);
 
 // GET /api/admin/dashboard - Dashboard statistics
-router.get('/dashboard', async (req: Request, res: Response, next: NextFunction) => {
+router.get('/dashboard', cacheDashboard, async (req: Request, res: Response, next: NextFunction) => {
   try {
     // Get total users
     const usersResult = await pool.query('SELECT COUNT(*) as total FROM users WHERE role = $1', ['user']);

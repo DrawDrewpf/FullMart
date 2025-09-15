@@ -5,11 +5,22 @@ import { Product, ApiResponse, PaginatedResponse, UserRole } from '../types';
 import { productCreateSchema, productUpdateSchema } from '../validations/schemas';
 import { validateQuery, validateBody } from '../middleware/validation';
 import { authenticateToken, requireRole } from '../middleware/auth';
+import { 
+  cacheProducts, 
+  cacheProduct, 
+  cacheCategories, 
+  invalidateCache,
+  apiRateLimit,
+  cacheService 
+} from '../middleware/cache';
 
 const router = Router();
 
+// Apply rate limiting to all product routes
+router.use(apiRateLimit);
+
 // Get all products
-router.get('/', async (req: Request, res: Response, next: NextFunction) => {
+router.get('/', cacheProducts, async (req: Request, res: Response, next: NextFunction) => {
   try {
     const { 
       page = 1, 
@@ -97,7 +108,7 @@ router.get('/', async (req: Request, res: Response, next: NextFunction) => {
 });
 
 // Get product by ID
-router.get('/:id', async (req: Request, res: Response, next: NextFunction) => {
+router.get('/:id', cacheProduct, async (req: Request, res: Response, next: NextFunction) => {
   try {
     const { id } = req.params;
     const result = await pool.query(
@@ -128,6 +139,7 @@ router.post('/',
   authenticateToken, 
   requireRole([UserRole.ADMIN]),
   validateBody(productCreateSchema),
+  invalidateCache(['products:*', 'categories:*', 'filters:*']),
   async (req: Request, res: Response, next: NextFunction) => {
     try {
       const { name, description, price, category, stock, image_url, features } = req.body;
@@ -157,6 +169,7 @@ router.put('/:id',
   authenticateToken, 
   requireRole([UserRole.ADMIN]),
   validateBody(productUpdateSchema),
+  invalidateCache(['products:*', 'categories:*', 'filters:*', 'product:*']),
   async (req: Request, res: Response, next: NextFunction) => {
     try {
       const { id } = req.params;
@@ -202,6 +215,7 @@ router.put('/:id',
 router.delete('/:id', 
   authenticateToken, 
   requireRole([UserRole.ADMIN]),
+  invalidateCache(['products:*', 'categories:*', 'filters:*', 'product:*']),
   async (req: Request, res: Response, next: NextFunction) => {
     try {
       const { id } = req.params;
@@ -233,7 +247,7 @@ router.delete('/:id',
 );
 
 // Get product categories
-router.get('/categories/list', async (req: Request, res: Response, next: NextFunction) => {
+router.get('/categories/list', cacheCategories, async (req: Request, res: Response, next: NextFunction) => {
   try {
     const result = await pool.query(
       'SELECT DISTINCT category FROM products WHERE is_active = true ORDER BY category'
@@ -253,7 +267,7 @@ router.get('/categories/list', async (req: Request, res: Response, next: NextFun
 });
 
 // Get filters data (categories and price range)
-router.get('/filters/categories', async (req: Request, res: Response, next: NextFunction) => {
+router.get('/filters/categories', cacheCategories, async (req: Request, res: Response, next: NextFunction) => {
   try {
     // Get categories with count and price range for each
     const categoriesResult = await pool.query(`
@@ -301,7 +315,7 @@ router.get('/filters/categories', async (req: Request, res: Response, next: Next
 });
 
 // GET /api/products/categories - Get all available product categories (public)
-router.get('/categories', async (req: Request, res: Response, next: NextFunction) => {
+router.get('/categories', cacheCategories, async (req: Request, res: Response, next: NextFunction) => {
   try {
     const result = await pool.query('SELECT DISTINCT category FROM products WHERE is_active = true ORDER BY category');
     

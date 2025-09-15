@@ -68,9 +68,7 @@ const CartPage = () => {
                     src={item.product.image_url} 
                     alt={item.product.name}
                     className="w-full h-full object-cover"
-                    fallbackText="Sin imagen"
                     category={item.product.category}
-                    size="small"
                   />
                 </div>
 
@@ -86,14 +84,14 @@ const CartPage = () => {
                 {/* Quantity Controls */}
                 <div className="flex items-center space-x-2">
                   <button
-                    onClick={() => handleQuantityChange(item.product_id, item.quantity - 1)}
+                    onClick={() => handleQuantityChange(item.productId, item.quantity - 1)}
                     className="w-8 h-8 rounded-full bg-gray-200 hover:bg-gray-300 flex items-center justify-center"
                   >
                     -
                   </button>
                   <span className="w-12 text-center font-semibold">{item.quantity}</span>
                   <button
-                    onClick={() => handleQuantityChange(item.product_id, item.quantity + 1)}
+                    onClick={() => handleQuantityChange(item.productId, item.quantity + 1)}
                     className="w-8 h-8 rounded-full bg-gray-200 hover:bg-gray-300 flex items-center justify-center"
                   >
                     +
@@ -102,7 +100,7 @@ const CartPage = () => {
 
                 {/* Remove Button */}
                 <button
-                  onClick={() => handleRemoveItem(item.product_id)}
+                  onClick={() => handleRemoveItem(item.productId)}
                   className="text-red-500 hover:text-red-700 p-2"
                 >
                   🗑️
